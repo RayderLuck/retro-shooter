@@ -17,13 +17,13 @@ let weaponLevel = 1;
 let shieldActive = false;
 let speedBoost = false;
 
-// 🚀 Desenha nave
+// 🚀 Nave
 function drawShip() {
-  ctx.fillStyle = shieldActive ? "cyan" : "lime"; // cor diferente se escudo ativo
+  ctx.fillStyle = shieldActive ? "cyan" : "lime";
   ctx.fillRect(ship.x, ship.y, ship.width, ship.height);
 }
 
-// 🔫 Disparo automático com níveis
+// 🔫 Disparo com níveis
 function shoot() {
   if (weaponLevel === 1) {
     bullets.push({ x: ship.x + ship.width, y: ship.y + ship.height / 2, speed: 7 });
@@ -37,13 +37,13 @@ function shoot() {
   }
 }
 
-// 👾 Cria inimigos vindo da direita
+// 👾 Inimigos
 function spawnEnemy() {
   let y = Math.random() * (canvas.height - 20);
   enemies.push({ x: canvas.width, y: y, width: 20, height: 20, speed: 3 });
 }
 
-// 🎁 Cria power-ups
+// 🎁 Power-ups
 function spawnPowerUp() {
   let y = Math.random() * (canvas.height - 20);
   let type = Math.floor(Math.random() * 3); // 0=arma, 1=escudo, 2=velocidade
@@ -51,7 +51,7 @@ function spawnPowerUp() {
   powerUps.push({ x: canvas.width, y: y, width: 15, height: 15, speed: 2, type, color });
 }
 
-// 💥 Explosão visual
+// 💥 Explosão
 function drawExplosion(x, y) {
   ctx.fillStyle = "red";
   ctx.beginPath();
@@ -59,11 +59,9 @@ function drawExplosion(x, y) {
   ctx.fill();
 }
 
-// 🎮 Atualiza tela
+// 🎮 Atualização
 function update() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // Nave
   drawShip();
 
   // Balas
@@ -72,12 +70,8 @@ function update() {
     ctx.fillStyle = "yellow";
     ctx.fillRect(b.x, b.y, 5, 2);
 
-    // Colisão com inimigos
     enemies.forEach((e, ei) => {
-      if (b.x < e.x + e.width &&
-          b.x + 5 > e.x &&
-          b.y < e.y + e.height &&
-          b.y + 2 > e.y) {
+      if (b.x < e.x + e.width && b.x + 5 > e.x && b.y < e.y + e.height && b.y + 2 > e.y) {
         drawExplosion(e.x, e.y);
         enemies.splice(ei, 1);
         bullets.splice(bi, 1);
@@ -92,7 +86,6 @@ function update() {
     ctx.fillStyle = "red";
     ctx.fillRect(e.x, e.y, e.width, e.height);
 
-    // Colisão com nave
     if (!shieldActive &&
         ship.x < e.x + e.width &&
         ship.x + ship.width > e.x &&
@@ -101,9 +94,7 @@ function update() {
       drawExplosion(ship.x + ship.width / 2, ship.y + ship.height / 2);
       enemies.splice(ei, 1);
       lives--;
-      if (lives <= 0) {
-        endGame();
-      }
+      if (lives <= 0) endGame();
     }
 
     if (e.x + e.width < 0) enemies.splice(ei, 1);
@@ -115,11 +106,8 @@ function update() {
     ctx.fillStyle = p.color;
     ctx.fillRect(p.x, p.y, p.width, p.height);
 
-    // Colisão com nave
-    if (ship.x < p.x + p.width &&
-        ship.x + ship.width > p.x &&
-        ship.y < p.y + p.height &&
-        ship.y + ship.height > p.y) {
+    if (ship.x < p.x + p.width && ship.x + ship.width > p.x &&
+        ship.y < p.y + p.height && ship.y + ship.height > p.y) {
       if (p.type === 0) {
         weaponLevel = Math.min(3, weaponLevel + 1);
       } else if (p.type === 1) {
@@ -144,12 +132,12 @@ function drawHUD() {
   ctx.fillStyle = "white";
   ctx.font = "16px 'Press Start 2P'";
   ctx.fillText("Score: " + score, 20, 30);
-  ctx.fillText("High Score: " + (ranking[0] || 0), 20, 60);
+  ctx.fillText("High Score: " + (ranking[0]?.score || 0), 20, 60);
   ctx.fillText("Lives: " + lives, 20, 90);
   ctx.fillText("Weapon Lvl: " + weaponLevel, 20, 120);
 }
 
-// 🏆 Quando inimigo é destruído
+// 🏆 Pontuação
 function enemyDestroyed() {
   score += 100;
 }
@@ -157,8 +145,12 @@ function enemyDestroyed() {
 // 🔚 Fim de jogo
 function endGame() {
   gameRunning = false;
-  ranking.push(score);
-  ranking.sort((a, b) => b - a);
+  let playerName = "Player";
+  if (score > (ranking[0]?.score || 0)) {
+    playerName = prompt("Novo recorde! Digite seu nome:");
+  }
+  ranking.push({ name: playerName, score: score });
+  ranking.sort((a, b) => b.score - a.score);
   ranking = ranking.slice(0, 5);
   localStorage.setItem("ranking", JSON.stringify(ranking));
   score = 0;
@@ -167,16 +159,16 @@ function endGame() {
   showRanking();
 }
 
-// 📊 Exibe ranking
+// 📊 Ranking
 function showRanking() {
   let rankingText = "TOP 5 SCORES:\n";
-  ranking.forEach((s, i) => {
-    rankingText += (i + 1) + "º - " + s + "\n";
+  ranking.forEach((entry, i) => {
+    rankingText += (i + 1) + "º - " + entry.name + " : " + entry.score + "\n";
   });
   alert(rankingText);
 }
 
-// 🖱️ Nave segue o mouse livre
+// 🖱️ Nave segue mouse
 canvas.addEventListener("mousemove", (event) => {
   if (!gameRunning) return;
   const rect = canvas.getBoundingClientRect();
@@ -211,46 +203,10 @@ function startGame() {
 
   setInterval(() => {
     if (gameRunning) spawnPowerUp();
-  }, 7000); // power-up a cada 7s
+  }, 7000);
 }
 
-// 🎯 Clique no botão
-startBtn.addEventListener("click", startGame);
-
-//
-
-// ... (seu código atual permanece)
-
-// 🔚 Fim de jogo
-function endGame() {
-  gameRunning = false;
-
-  let playerName = "Player";
-  if (score > (ranking[0]?.score || 0)) {
-    playerName = prompt("Novo recorde! Digite seu nome:");
-  }
-
-  ranking.push({ name: playerName, score: score });
-  ranking.sort((a, b) => b.score - a.score);
-  ranking = ranking.slice(0, 5);
-  localStorage.setItem("ranking", JSON.stringify(ranking));
-
-  score = 0;
-  lives = 3;
-  weaponLevel = 1;
-  showRanking();
-}
-
-// 📊 Exibe ranking
-function showRanking() {
-  let rankingText = "TOP 5 SCORES:\n";
-  ranking.forEach((entry, i) => {
-    rankingText += (i + 1) + "º - " + entry.name + " : " + entry.score + "\n";
-  });
-  alert(rankingText);
-}
-
-// 🎯 Clique nos botões
+// 🎯 Botões
 startBtn.addEventListener("click", startGame);
 
 document.getElementById("optionsBtn").addEventListener("click", () => {
@@ -261,10 +217,9 @@ document.getElementById("aboutBtn").addEventListener("click", () => {
   alert("Retro Shooter\nCriado por Rayder\nVersão 1.0\nUm shooter arcade retrô com power-ups e ranking!");
 });
 
-// 🎯 Pressionar Enter
+// 🎯 Enter inicia
 document.addEventListener("keydown", (event) => {
   if (event.key === "Enter" && !gameRunning) {
     startGame();
   }
 });
-
