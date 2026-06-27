@@ -218,3 +218,53 @@ function startGame() {
 startBtn.addEventListener("click", startGame);
 
 //
+
+// ... (seu código atual permanece)
+
+// 🔚 Fim de jogo
+function endGame() {
+  gameRunning = false;
+
+  let playerName = "Player";
+  if (score > (ranking[0]?.score || 0)) {
+    playerName = prompt("Novo recorde! Digite seu nome:");
+  }
+
+  ranking.push({ name: playerName, score: score });
+  ranking.sort((a, b) => b.score - a.score);
+  ranking = ranking.slice(0, 5);
+  localStorage.setItem("ranking", JSON.stringify(ranking));
+
+  score = 0;
+  lives = 3;
+  weaponLevel = 1;
+  showRanking();
+}
+
+// 📊 Exibe ranking
+function showRanking() {
+  let rankingText = "TOP 5 SCORES:\n";
+  ranking.forEach((entry, i) => {
+    rankingText += (i + 1) + "º - " + entry.name + " : " + entry.score + "\n";
+  });
+  alert(rankingText);
+}
+
+// 🎯 Clique nos botões
+startBtn.addEventListener("click", startGame);
+
+document.getElementById("optionsBtn").addEventListener("click", () => {
+  alert("Opções ainda não implementadas.\nAqui você poderá ajustar som, dificuldade, etc.");
+});
+
+document.getElementById("aboutBtn").addEventListener("click", () => {
+  alert("Retro Shooter\nCriado por Rayder\nVersão 1.0\nUm shooter arcade retrô com power-ups e ranking!");
+});
+
+// 🎯 Pressionar Enter
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Enter" && !gameRunning) {
+    startGame();
+  }
+});
+
