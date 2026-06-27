@@ -3,7 +3,7 @@ const ctx = canvas.getContext("2d");
 const startBtn = document.getElementById("startBtn");
 const menu = document.getElementById("menu");
 
-let ship = { x: 100, y: 250, width: 40, height: 20, speed: 5 };
+let ship = { x: 100, y: 250, width: 80, height: 40, speed: 5 }; // aumentei tamanho p/ sprite
 let bullets = [];
 let enemies = [];
 let powerUps = [];
@@ -17,10 +17,18 @@ let weaponLevel = 1;
 let shieldActive = false;
 let speedBoost = false;
 
+// 🚀 Carrega sprite da nave
+let shipImg = new Image();
+shipImg.src = "https://raw.githubusercontent.com/RayderLuck/retro-shooter/main/ship.png";
+
 // 🚀 Nave
 function drawShip() {
-  ctx.fillStyle = shieldActive ? "cyan" : "lime";
-  ctx.fillRect(ship.x, ship.y, ship.width, ship.height);
+  if (shipImg.complete) {
+    ctx.drawImage(shipImg, ship.x, ship.y, ship.width, ship.height);
+  } else {
+    ctx.fillStyle = shieldActive ? "cyan" : "lime";
+    ctx.fillRect(ship.x, ship.y, ship.width, ship.height);
+  }
 }
 
 // 🔫 Disparo com níveis
@@ -40,7 +48,7 @@ function shoot() {
 // 👾 Inimigos
 function spawnEnemy() {
   let y = Math.random() * (canvas.height - 20);
-  enemies.push({ x: canvas.width, y: y, width: 20, height: 20, speed: 3 });
+  enemies.push({ x: canvas.width, y: y, width: 30, height: 30, speed: 3 });
 }
 
 // 🎁 Power-ups
@@ -48,7 +56,7 @@ function spawnPowerUp() {
   let y = Math.random() * (canvas.height - 20);
   let type = Math.floor(Math.random() * 3); // 0=arma, 1=escudo, 2=velocidade
   let color = type === 0 ? "blue" : type === 1 ? "green" : "yellow";
-  powerUps.push({ x: canvas.width, y: y, width: 15, height: 15, speed: 2, type, color });
+  powerUps.push({ x: canvas.width, y: y, width: 20, height: 20, speed: 2, type, color });
 }
 
 // 💥 Explosão
@@ -221,5 +229,3 @@ document.getElementById("aboutBtn").addEventListener("click", () => {
 document.addEventListener("keydown", (event) => {
   if (event.key === "Enter" && !gameRunning) {
     startGame();
-  }
-});
