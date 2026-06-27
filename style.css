@@ -1,27 +1,18 @@
-/* 🎮 Retro Shooter - estilo básico */
-
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
-
 body {
   margin: 0;
   padding: 0;
-  background-color: #000; /* fundo preto clássico */
+  background-color: #000;
   color: #fff;
   font-family: 'Press Start 2P', cursive;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   height: 100vh;
 }
 
-canvas {
-  border: 2px solid #fff; /* borda branca estilo arcade */
-  background-color: #000;
-}
-
-h1, p {
+#menu {
   text-align: center;
-  margin: 10px 0;
 }
 
 button {
