@@ -3,7 +3,7 @@ const ctx = canvas.getContext("2d");
 const startBtn = document.getElementById("startBtn");
 const menu = document.getElementById("menu");
 
-let ship = { x: 100, y: 250, width: 80, height: 40, speed: 5 }; // aumentei tamanho p/ sprite
+let ship = { x: 100, y: 250, width: 80, height: 40, speed: 5 };
 let bullets = [];
 let enemies = [];
 let powerUps = [];
@@ -17,9 +17,18 @@ let weaponLevel = 1;
 let shieldActive = false;
 let speedBoost = false;
 
-// 🚀 Carrega sprite da nave
+// 🚀 Sprite da nave
 let shipImg = new Image();
 shipImg.src = "https://raw.githubusercontent.com/RayderLuck/retro-shooter/main/ship.png";
+
+// 🎶 Música de fundo
+let bgMusic = new Audio("https://raw.githubusercontent.com/RayderLuck/retro-shooter/main/fase1.mp3");
+bgMusic.loop = true;
+bgMusic.volume = 0.5;
+
+// 🔫 Som do tiro
+let shootSound = new Audio("https://raw.githubusercontent.com/RayderLuck/retro-shooter/main/laser1.wav");
+shootSound.volume = 0.7;
 
 // 🚀 Nave
 function drawShip() {
@@ -43,6 +52,10 @@ function shoot() {
     bullets.push({ x: ship.x + ship.width, y: ship.y + ship.height / 2, speed: 7 });
     bullets.push({ x: ship.x + ship.width, y: ship.y + ship.height, speed: 7 });
   }
+
+  // 🔊 toca som do tiro sincronizado
+  shootSound.currentTime = 0;
+  shootSound.play();
 }
 
 // 👾 Inimigos
@@ -54,7 +67,7 @@ function spawnEnemy() {
 // 🎁 Power-ups
 function spawnPowerUp() {
   let y = Math.random() * (canvas.height - 20);
-  let type = Math.floor(Math.random() * 3); // 0=arma, 1=escudo, 2=velocidade
+  let type = Math.floor(Math.random() * 3);
   let color = type === 0 ? "blue" : type === 1 ? "green" : "yellow";
   powerUps.push({ x: canvas.width, y: y, width: 20, height: 20, speed: 2, type, color });
 }
@@ -153,6 +166,9 @@ function enemyDestroyed() {
 // 🔚 Fim de jogo
 function endGame() {
   gameRunning = false;
+  bgMusic.pause();
+  bgMusic.currentTime = 0;
+
   let playerName = "Player";
   if (score > (ranking[0]?.score || 0)) {
     playerName = prompt("Novo recorde! Digite seu nome:");
@@ -198,6 +214,9 @@ function startGame() {
   bullets = [];
   powerUps = [];
 
+  // 🎶 toca música da fase
+  bgMusic.play();
+
   setInterval(() => {
     if (gameRunning) {
       shoot();
@@ -217,15 +236,3 @@ function startGame() {
 // 🎯 Botões
 startBtn.addEventListener("click", startGame);
 
-document.getElementById("optionsBtn").addEventListener("click", () => {
-  alert("Opções ainda não implementadas.\nAqui você poderá ajustar som, dificuldade, etc.");
-});
-
-document.getElementById("aboutBtn").addEventListener("click", () => {
-  alert("Retro Shooter\nCriado por Rayder\nVersão 1.0\nUm shooter arcade retrô com power-ups e ranking!");
-});
-
-// 🎯 Enter inicia
-document.addEventListener("keydown", (event) => {
-  if (event.key === "Enter" && !gameRunning) {
-    startGame();
