@@ -26,6 +26,7 @@ function update() {
   });
 }
 
+// 🖱️ Nave segue o mouse
 canvas.addEventListener("mousemove", (event) => {
   if (!gameRunning) return;
   const rect = canvas.getBoundingClientRect();
@@ -33,6 +34,7 @@ canvas.addEventListener("mousemove", (event) => {
   ship.y = Math.max(0, Math.min(mouseY - ship.height / 2, canvas.height - ship.height));
 });
 
+// 🚀 Função para iniciar o jogo
 function startGame() {
   menu.style.display = "none";
   canvas.style.display = "block";
@@ -46,4 +48,12 @@ function startGame() {
   }, 100);
 }
 
+// 🎯 Clique no botão
 startBtn.addEventListener("click", startGame);
+
+// 🎯 Pressionar Enter
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Enter" && !gameRunning) {
+    startGame();
+  }
+});
