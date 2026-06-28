@@ -144,8 +144,8 @@ startBtn.addEventListener("click", () => {
   loop();
 });
 
-// 🎮 Nave segue o mouse
-canvas.addEventListener("mousemove", e => {
+// 🖱️ Nave segue o mouse (em toda a janela)
+document.addEventListener("mousemove", e => {
   const rect = canvas.getBoundingClientRect();
   const mouseY = e.clientY - rect.top;
   gameState.ship.y = mouseY - gameState.ship.h / 2;
