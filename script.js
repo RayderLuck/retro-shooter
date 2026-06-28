@@ -154,6 +154,7 @@ startBtn.addEventListener("click", () => {
   loop();
 });
 
+
 // 🖱️ Nave segue o mouse (horizontal + vertical)
 document.addEventListener("mousemove", e => {
   const rect = canvas.getBoundingClientRect();
