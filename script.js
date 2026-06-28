@@ -134,7 +134,9 @@ function endGame(){
 
   // Atualiza tela
   finalScore.innerText = "Score: " + gameState.score;
-  rankingBox.innerText = gameState.ranking.map((e,i)=>`${i+1}º - ${e.name}: ${e.score}`).join("\n");
+  rankingBox.innerText = gameState.ranking
+    .map((e,i)=>`${i+1}º - ${e.name}: ${e.score}`)
+    .join("\n");
 
   canvas.style.display = "none";
   menu.style.display = "none";
