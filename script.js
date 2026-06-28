@@ -2,12 +2,13 @@ const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 const startBtn = document.getElementById("startBtn");
 const menu = document.getElementById("menu");
+const volumeSlider = document.getElementById("volumeSlider"); // slider no HTML
 
 let ship = { x: 100, y: 250, width: 80, height: 40, speed: 5 };
 let bullets = [];
 let enemies = [];
 let powerUps = [];
-let stars = []; // ✨ Fundo animado
+let stars = [];
 let gameRunning = false;
 
 // Pontuação, Ranking e Vidas
@@ -17,22 +18,31 @@ let lives = 3;
 let weaponLevel = 1;
 let shieldActive = false;
 let speedBoost = false;
+let currentPhase = 0; // controla fase atual
 
 // 🚀 Sprite da nave
 let shipImg = new Image();
-shipImg.src = "https://raw.githubusercontent.com/RayderLuck/retro-shooter/main/ship.png";
+shipImg.src = "ship.png";
 
-// 🎶 Música de fundo
-let bgMusic = new Audio("https://raw.githubusercontent.com/RayderLuck/retro-shooter/main/fase1.mp3");
-bgMusic.loop = true;
-bgMusic.volume = 0.5;
+// 🎶 Músicas
+let menuMusic = new Audio("menu.mp3");
+let fase1Music = new Audio("fase1.mp3");
+let fase2Music = new Audio("fase2.mp3");
+let fase3Music = new Audio("fase3.mp3");
+let fase4Music = new Audio("fase4.mp3");
+
+[menuMusic, fase1Music, fase2Music, fase3Music, fase4Music].forEach(m => {
+    m.loop = true;
+    m.volume = 0.5;
+});
 
 // 🔫 Som do tiro
-let shootSound = new Audio("https://raw.githubusercontent.com/RayderLuck/retro-shooter/main/laser1.wav");
+let shootSound = new Audio("laser1.wav");
 shootSound.volume = 0.7;
 
-// 🌌 Fundo animado de estrelas
+// 🌌 Fundo animado
 function initStars() {
+    stars = [];
     for (let i = 0; i < 100; i++) {
         stars.push({
             x: Math.random() * canvas.width,
@@ -46,7 +56,6 @@ function initStars() {
 function drawBackground() {
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-
     ctx.fillStyle = "white";
     stars.forEach(star => {
         ctx.beginPath();
@@ -70,7 +79,7 @@ function drawShip() {
     }
 }
 
-// 🔫 Disparo com níveis
+// 🔫 Disparo
 function shoot() {
     if (weaponLevel === 1) {
         bullets.push({ x: ship.x + ship.width, y: ship.y + ship.height / 2, speed: 7 });
@@ -175,18 +184,23 @@ function drawHUD() {
     ctx.fillText("High Score: " + (ranking[0]?.score || 0), 20, 60);
     ctx.fillText("Lives: " + lives, 20, 90);
     ctx.fillText("Weapon Lvl: " + weaponLevel, 20, 120);
+    ctx.fillText("Phase: " + currentPhase, 20, 150);
 }
 
 // 🏆 Pontuação
 function enemyDestroyed() {
     score += 100;
+    // Exemplo: troca de fase a cada 2000 pontos
+    if (score >= 2000 && currentPhase === 1) playMusicForPhase(2);
+    if (score >= 4000 && currentPhase === 2) playMusicForPhase(3);
+    if (score >= 6000 && currentPhase === 3) playMusicForPhase(4);
 }
 
 // 🔚 Fim de jogo
 function endGame() {
     gameRunning = false;
-    bgMusic.pause();
-    bgMusic.currentTime = 0;
+    stopAllMusic();
+    menuMusic.play();
     let playerName = "Player";
     if (score > (ranking[0]?.score || 0)) {
         playerName = prompt("Novo recorde! Digite seu nome:");
@@ -194,7 +208,7 @@ function endGame() {
     ranking.push({ name: playerName, score: score });
     ranking.sort((a, b) => b.score - a.score);
     ranking = ranking.slice(0, 5);
-    localStorage.setItem("ranking", JSON.stringify(ranking));
+    localStorage.setItem("ranking", JSON.stringify(ranking)
     score = 0;
     lives = 3;
     weaponLevel = 1;
@@ -209,6 +223,31 @@ function showRanking() {
     });
     alert(rankingText);
 }
+
+// 🎵 Funções de música
+function stopAllMusic() {
+    [menuMusic, fase1Music, fase2Music, fase3Music, fase4Music].forEach(m => {
+        m.pause();
+        m.currentTime = 0;
+    });
+}
+
+function playMusicForPhase(phase) {
+    stopAllMusic();
+    currentPhase = phase;
+    if (phase === 0) menuMusic.play();
+    if (phase === 1) fase1Music.play();
+    if (phase === 2) fase2Music.play();
+    if (phase === 3) fase3Music.play();
+    if (phase === 4) fase4Music.play();
+}
+
+// 🔊 Controle de volume
+volumeSlider.addEventListener("input", () => {
+    let vol = volumeSlider.value / 100; // slider 0–100
+    [menuMusic, fase1Music, fase2Music, fase3Music, fase4Music].forEach(m => m.volume = vol);
+    shootSound.volume = vol;
+});
 
 // 🖱️ Nave segue mouse
 canvas.addEventListener("mousemove", (event) => {
@@ -231,11 +270,10 @@ function startGame() {
     enemies = [];
     bullets = [];
     powerUps = [];
-    stars = []; // reinicia fundo
-    initStars(); // inicializa estrelas
+    initStars();
 
-    // 🎶 toca música da fase
-    bgMusic.play();
+    // 🎶 começa fase 1
+    playMusicForPhase(1);
 
     // Loop principal
     setInterval(() => {
@@ -258,3 +296,6 @@ function startGame() {
 
 // 🎯 Botão Start
 startBtn.addEventListener("click", startGame);
+
+// 🎶 Tocar música do menu ao abrir
+playMusicForPhase(0);
