@@ -14,9 +14,8 @@ let gameState = {
   weaponLevel: 1, phase: 0
 };
 
-// 🎶 Sons (só menu + fase1 + tiro)
+// 🎶 Sons (só fase1 + tiro)
 const sounds = {
-  menu: new Audio("menu.wav"),
   fase1: new Audio("fase1.wav"),
   shoot: new Audio("laser1.wav")
 };
@@ -89,10 +88,7 @@ function drawHUD() {
 
 // 🎵 Música
 function stopMusic(){ Object.values(sounds).forEach(m=>{m.pause();m.currentTime=0;}); }
-function playMusic(p){ stopMusic(); if(p===0) sounds.menu.play(); if(p===1) sounds.fase1.play(); }
-
-// 🔊 Volume
-volumeSlider.addEventListener("input",()=>{ let v=volumeSlider.value/100; Object.values(sounds).forEach(m=>m.volume=v); });
+function playMusic(){ stopMusic(); sounds.fase1.play(); }
 
 // 🚀 Iniciar jogo
 startBtn.addEventListener("click", () => {
@@ -102,13 +98,13 @@ startBtn.addEventListener("click", () => {
   gameState.running = true;
   gameState.phase = 1;
   initStars();
-  playMusic(1);
+  playMusic();
   setInterval(spawnEnemy, 2000);
   startAutoShoot();
   loop();
 });
 
-// 🖱️ Nave segue o mouse (horizontal + vertical)
+// 🖱️ Nave segue o mouse
 document.addEventListener("mousemove", e => {
   const rect = canvas.getBoundingClientRect();
   const mouseX = e.clientX - rect.left;
