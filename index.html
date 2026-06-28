@@ -4,31 +4,27 @@
   <meta charset="UTF-8">
   <title>Retro Shooter</title>
   <link rel="stylesheet" href="style.css">
-
-  <!-- Fonte retrô usada no HUD -->
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 </head>
 <body>
   <!-- Menu principal -->
- <div id="menu">
-  <h1>🚀 Retro Shooter</h1>
-  <label for="playerName">Nome:</label>
-  <input type="text" id="playerName" placeholder="Digite seu nome">
-  <button id="startBtn">START</button>
-  <button id="optionsBtn">OPÇÕES</button>
-  <button id="aboutBtn">SOBRE</button>
-  <label for="volumeSlider">Volume:</label>
-  <input type="range" id="volumeSlider" min="0" max="100" value="50">
+  <div id="menu">
+    <h1>🚀 Retro Shooter</h1>
+    <label for="playerName">Nome:</label>
+    <input type="text" id="playerName" placeholder="Digite seu nome">
+    <button id="startBtn">START</button>
+    <button id="optionsBtn">OPÇÕES</button>
+    <button id="aboutBtn">SOBRE</button>
 
-  <!-- Ranking visível no menu -->
-  <div id="rankingMenu" style="margin-top:20px; color:white; font-family:'Press Start 2P';">
-    <h2>🏆 Ranking</h2>
-    <pre id="rankingList"></pre>
-  </div>
-   
     <!-- Controle de volume -->
     <label for="volumeSlider">Volume:</label>
     <input type="range" id="volumeSlider" min="0" max="100" value="50">
+
+    <!-- Ranking visível no menu -->
+    <div id="rankingMenu" style="margin-top:20px; color:white; font-family:'Press Start 2P';">
+      <h2>🏆 Ranking</h2>
+      <pre id="rankingList"></pre>
+    </div>
   </div>
 
   <!-- Canvas do jogo -->
