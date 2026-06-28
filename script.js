@@ -15,7 +15,7 @@ let gameState = {
   phase: 0, ranking: JSON.parse(localStorage.getItem("ranking")) || []
 };
 
-// 🎶 Sons
+// 🎶 Sons (nomes batendo com sua pasta)
 const sounds = {
   menu: new Audio("menu.wav"),
   fase1: new Audio("fase1.wav"),
@@ -175,10 +175,4 @@ function stopAutoShoot() {
 }
 
 // 🎮 Loop de animação
-function loop() {
-  if (gameState.running) {
-    update();
-    requestAnimationFrame(loop);
-  }
-}
-``
+function loop()
