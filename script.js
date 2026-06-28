@@ -183,20 +183,6 @@ function playMusic(){ stopMusic(); sounds.fase1.play(); }
 // 🔊 Volume
 volumeSlider.addEventListener("input",()=>{ let v=volumeSlider.value/100; Object.values(sounds).forEach(m=>m.volume=v); });
 
-// 🚀 Iniciar jogo
-startBtn.addEventListener("click", () => {
-  menu.style.display = "none";
-  canvas.style.display = "block";
-  canvas.focus();
-  gameState.running = true;
-  initStars();
-  playMusic();
-  setInterval(spawnEnemy, 2000);
-  setInterval(spawnPowerUp, 10000);
-  startAutoShoot();
-  loop();
-});
-
 // 🖱️ Nave segue o mouse
 document.addEventListener("mousemove", e => {
   const rect = canvas.getBoundingClientRect();
