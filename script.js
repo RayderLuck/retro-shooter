@@ -38,12 +38,26 @@ function drawBackground() {
   });
 }
 
-// 🚀 Nave
-const shipImg = new Image(); shipImg.src = "ship.png";
+// 🚀 Nave com spritesheet
+const shipSprite = new Image();
+shipSprite.src = "ship_sprites.png"; // contém 4 frames lado a lado
+let frame = 0;
+let frameWidth = 80; // largura de cada frame
+let frameHeight = 40; // altura de cada frame
+
 function drawShip() {
-  if (shipImg.complete) ctx.drawImage(shipImg, gameState.ship.x, gameState.ship.y, gameState.ship.w, gameState.ship.h);
-  else { ctx.fillStyle = gameState.shield ? "cyan" : "lime"; ctx.fillRect(gameState.ship.x, gameState.ship.y, gameState.ship.w, gameState.ship.h); }
+  ctx.drawImage(
+    shipSprite,
+    frame * frameWidth, 0, frameWidth, frameHeight, // recorte do spritesheet
+    gameState.ship.x, gameState.ship.y, gameState.ship.w, gameState.ship.h // posição no canvas
+  );
 }
+
+// ⏱️ Troca de frame (animação do foguinho)
+setInterval(() => {
+  frame = (frame + 1) % 4; // alterna entre 0,1,2,3
+}, 150); // troca a cada 150ms
+
 
 // 🔫 Disparo
 function shoot() {
