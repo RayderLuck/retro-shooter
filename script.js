@@ -201,17 +201,22 @@ function endGame() {
     gameRunning = false;
     stopAllMusic();
     menuMusic.play();
+
     let playerName = "Player";
     if (score > (ranking[0]?.score || 0)) {
         playerName = prompt("Novo recorde! Digite seu nome:");
     }
+
     ranking.push({ name: playerName, score: score });
     ranking.sort((a, b) => b.score - a.score);
     ranking = ranking.slice(0, 5);
-    localStorage.setItem("ranking", JSON.stringify(ranking)
+    localStorage.setItem("ranking", JSON.stringify(ranking));
+
+    // reset de variáveis
     score = 0;
     lives = 3;
     weaponLevel = 1;
+
     showRanking();
 }
 
@@ -297,5 +302,5 @@ function startGame() {
 // 🎯 Botão Start
 startBtn.addEventListener("click", startGame);
 
-// 🎶 Tocar música do menu ao abrir
+// 🎶 Música do menu ao abrir
 playMusicForPhase(0);
