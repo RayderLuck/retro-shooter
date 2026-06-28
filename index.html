@@ -24,6 +24,14 @@
   <!-- Canvas do jogo -->
   <canvas id="gameCanvas" width="800" height="600" style="display:none;" tabindex="0"></canvas>
 
+  <!-- Tela de Game Over -->
+  <div id="gameOver" style="display:none; text-align:center; color:white; font-family:'Press Start 2P';">
+    <h1>GAME OVER!</h1>
+    <p id="finalScore"></p>
+    <pre id="ranking"></pre>
+    <button onclick="restartGame()">Reiniciar</button>
+  </div>
+
   <!-- Script principal -->
   <script src="script.js"></script>
 </body>
