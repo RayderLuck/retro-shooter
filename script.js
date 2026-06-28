@@ -1,4 +1,4 @@
-// 🎮 Retro Shooter Simplificado e Funcional
+// 🎮 Retro Shooter Simplificado
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
@@ -15,19 +15,19 @@ let gameState = {
   phase: 0, ranking: JSON.parse(localStorage.getItem("ranking")) || []
 };
 
-// 🎶 Sons
+// 🎶 Sons (ajustados para seus arquivos .wav)
 const sounds = {
-  menu: new Audio("menu.mp3"),
-  fase1: new Audio("fase1.mp3"),
-  fase2: new Audio("fase2.mp3"),
-  fase3: new Audio("fase3.mp3"),
-  fase4: new Audio("fase4.mp3"),
+  menu: new Audio("Title Screen.wav"),
+  fase1: new Audio("Level 1.wav"),
+  fase2: new Audio("Level 2.wav"),
+  fase3: new Audio("Level 3.wav"),
+  ending: new Audio("Ending.wav"),
   shoot: new Audio("laser1.wav")
 };
 Object.values(sounds).forEach(m => { m.loop = true; m.volume = 0.5; });
-sounds.shoot.volume = 0.7;
+sounds.shoot.loop = false; sounds.shoot.volume = 0.7;
 
-// 🌌 Fundo
+// 🌌 Fundo estrelado
 function initStars() {
   gameState.stars = Array.from({ length: 100 }, () => ({
     x: Math.random() * canvas.width,
@@ -44,7 +44,6 @@ function drawBackground() {
     s.x -= s.speed; if (s.x < 0) { s.x = canvas.width; s.y = Math.random() * canvas.height; }
   });
 }
-
 // 🚀 Nave
 const shipImg = new Image(); shipImg.src = "ship.png";
 function drawShip() {
@@ -97,7 +96,6 @@ function update() {
 
   drawHUD();
 }
-
 // 🖥️ HUD
 function drawHUD() {
   ctx.fillStyle="white"; ctx.font="16px 'Press Start 2P'";
@@ -109,8 +107,7 @@ function drawHUD() {
 }
 
 // 🏆 Pontuação
-function enemyDestroyed(){ gameState.score+=100; if(gameState.score>=2000&&gameState.phase===1) playMusic(2);
-  if(gameState.score>=4000&&gameState.phase===2) playMusic(3); if(gameState.score>=6000&&gameState.phase===3) playMusic(4); }
+function enemyDestroyed(){ gameState.score+=100; }
 
 // 🔚 Fim de jogo
 function endGame(){
@@ -118,13 +115,13 @@ function endGame(){
   let name="Player"; if(gameState.score>(gameState.ranking[0]?.score||0)) name=prompt("Novo recorde! Nome:");
   gameState.ranking.push({name,score:gameState.score}); gameState.ranking.sort((a,b)=>b.score-a.score); gameState.ranking=gameState.ranking.slice(0,5);
   localStorage.setItem("ranking",JSON.stringify(gameState.ranking));
-  gameState.score=0; gameState.lives=3; gameState.weaponLevel=1; showRanking();
+  gameState.score=0; gameState.lives=3; gameState.weaponLevel=1;
+  alert("TOP 5:\n"+gameState.ranking.map((e,i)=>`${i+1}º - ${e.name}: ${e.score}`).join("\n"));
 }
-function showRanking(){ alert("TOP 5:\n"+gameState.ranking.map((e,i)=>`${i+1}º - ${e.name}: ${e.score}`).join("\n")); }
 
 // 🎵 Música
 function stopMusic(){ Object.values(sounds).forEach(m=>{m.pause();m.currentTime=0;}); }
-function playMusic(p){ stopMusic(); gameState.phase=p; if(p===0) sounds.menu.play(); if(p===1) sounds.fase1.play(); if(p===2) sounds.fase2.play(); if(p===3) sounds.fase3.play(); if(p===4) sounds.fase4.play(); }
+function playMusic(p){ stopMusic(); gameState.phase=p; if(p===0) sounds.menu.play(); if(p===1) sounds.fase1.play(); if(p===2) sounds.fase2.play(); if(p===3) sounds.fase3.play(); if(p===4) sounds.ending.play(); }
 
 // 🔊 Volume
 volumeSlider.addEventListener("input",()=>{ let v=volumeSlider.value/100; Object.values(sounds).forEach(m=>m.volume=v); });
@@ -137,7 +134,16 @@ startBtn.addEventListener("click", () => {
   gameState.phase = 1;
   initStars();
   playMusic(1);
+  setInterval(spawnEnemy, 2000);
+  setInterval(spawnPowerUp, 10000);
   loop();
+});
+
+// 🎮 Controles
+document.addEventListener("keydown", e => {
+  if(e.key === "ArrowUp") gameState.ship.y -= gameState.ship.speed;
+  if(e.key === "ArrowDown") gameState.ship.y += gameState.ship.speed;
+  if(e.key === " ") shoot();
 });
 
 // 🎮 Loop de animação
