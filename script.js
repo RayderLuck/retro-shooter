@@ -15,13 +15,14 @@ let gameState = {
   phase: 0, ranking: JSON.parse(localStorage.getItem("ranking")) || []
 };
 
-// 🎶 Sons (nomes ajustados para seus arquivos .wav)
+// 🎶 Sons
 const sounds = {
-  menu: new Audio("Juhani Junkala [Retro Game Music Pack] Title Screen.wav"),
-  fase1: new Audio("Level 1.wav"),
-  fase2: new Audio("Level 2.wav"),
-  fase3: new Audio("Level 3.wav"),
-  ending: new Audio("Juhani Junkala [Retro Game Music Pack] Ending.wav"),
+  menu: new Audio("menu.wav"),
+  fase1: new Audio("fase1.wav"),
+  fase2: new Audio("fase2.wav"),
+  fase3: new Audio("fase3.wav"),
+  fase4: new Audio("fase4.wav"),
+  ending: new Audio("Ending.wav"),
   shoot: new Audio("laser1.wav")
 };
 Object.values(sounds).forEach(m => { m.loop = true; m.volume = 0.5; });
@@ -124,7 +125,16 @@ function endGame(){
 
 // 🎵 Música
 function stopMusic(){ Object.values(sounds).forEach(m=>{m.pause();m.currentTime=0;}); }
-function playMusic(p){ stopMusic(); gameState.phase=p; if(p===0) sounds.menu.play(); if(p===1) sounds.fase1.play(); if(p===2) sounds.fase2.play(); if(p===3) sounds.fase3.play(); if(p===4) sounds.ending.play(); }
+function playMusic(p){ 
+  stopMusic(); 
+  gameState.phase=p; 
+  if(p===0) sounds.menu.play(); 
+  if(p===1) sounds.fase1.play(); 
+  if(p===2) sounds.fase2.play(); 
+  if(p===3) sounds.fase3.play(); 
+  if(p===4) sounds.fase4.play(); 
+  if(p===5) sounds.ending.play(); 
+}
 
 // 🔊 Volume
 volumeSlider.addEventListener("input",()=>{ let v=volumeSlider.value/100; Object.values(sounds).forEach(m=>m.volume=v); });
@@ -144,10 +154,12 @@ startBtn.addEventListener("click", () => {
   loop();
 });
 
-// 🖱️ Nave segue o mouse (em toda a janela)
+// 🖱️ Nave segue o mouse (horizontal + vertical)
 document.addEventListener("mousemove", e => {
   const rect = canvas.getBoundingClientRect();
+  const mouseX = e.clientX - rect.left;
   const mouseY = e.clientY - rect.top;
+  gameState.ship.x = mouseX - gameState.ship.w / 2;
   gameState.ship.y = mouseY - gameState.ship.h / 2;
 });
 
