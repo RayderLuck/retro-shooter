@@ -116,8 +116,10 @@ function drawHUD() {
 // 🏆 Score
 function saveScore(){
   let ranking = JSON.parse(localStorage.getItem("ranking")) || [];
-  // pede o nome do jogador
-  let name = prompt("Digite seu nome:") || "Player";
+  // pega o nome do campo no menu
+  let nameField = document.getElementById("playerName");
+  let name = nameField && nameField.value.trim() !== "" ? nameField.value.trim() : "Player";
+  
   ranking.push({ name: name, score: gameState.score });
   ranking.sort((a,b)=>b.score-a.score);
   ranking = ranking.slice(0,5); // mantém só top 5
