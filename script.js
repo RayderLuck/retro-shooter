@@ -1,10 +1,13 @@
-// 🎮 Retro Shooter v3.0
+// 🎮 Retro Shooter v4.0
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 const startBtn = document.getElementById("startBtn");
 const menu = document.getElementById("menu");
 const volumeSlider = document.getElementById("volumeSlider");
+const gameOverScreen = document.getElementById("gameOver");
+const finalScore = document.getElementById("finalScore");
+const rankingBox = document.getElementById("ranking");
 
 // 🚀 Estado do jogo
 let gameState = {
@@ -113,7 +116,8 @@ function drawHUD() {
 // 🏆 Score
 function saveScore(){
   let ranking = gameState.ranking;
-  ranking.push({ name:"Player", score:gameState.score });
+  let name = prompt("Digite seu nome:") || "Player";
+  ranking.push({ name, score:gameState.score });
   ranking.sort((a,b)=>b.score-a.score);
   ranking = ranking.slice(0,5);
   localStorage.setItem("ranking", JSON.stringify(ranking));
@@ -126,10 +130,22 @@ function endGame(){
   stopMusic();
   stopAutoShoot();
   saveScore();
-  alert("GAME OVER!\nScore: "+gameState.score+"\nTOP 5:\n"+gameState.ranking.map((e,i)=>`${i+1}º - ${e.name}: ${e.score}`).join("\n"));
-  menu.style.display = "block";
+
+  // Atualiza tela
+  finalScore.innerText = "Score: " + gameState.score;
+  rankingBox.innerText = gameState.ranking.map((e,i)=>`${i+1}º - ${e.name}: ${e.score}`).join("\n");
+
   canvas.style.display = "none";
+  menu.style.display = "none";
+  gameOverScreen.style.display = "block";
+
   gameState.score=0; gameState.lives=3; gameState.weaponLevel=1;
+}
+
+// Reiniciar
+function restartGame(){
+  gameOverScreen.style.display = "none";
+  menu.style.display = "block";
 }
 
 // 🎵 Música
