@@ -1,4 +1,4 @@
-// 🎮 Retro Shooter Simplificado
+// 🎮 Retro Shooter Completo e Funcional
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
@@ -6,7 +6,7 @@ const startBtn = document.getElementById("startBtn");
 const menu = document.getElementById("menu");
 const volumeSlider = document.getElementById("volumeSlider");
 
-// 🚀 Estado centralizado
+// 🚀 Estado do jogo
 let gameState = {
   ship: { x: 100, y: 250, w: 80, h: 40, speed: 5 },
   bullets: [], enemies: [], powerUps: [], stars: [],
@@ -15,7 +15,7 @@ let gameState = {
   phase: 0, ranking: JSON.parse(localStorage.getItem("ranking")) || []
 };
 
-// 🎶 Sons (ajustados para seus arquivos .wav)
+// 🎶 Sons
 const sounds = {
   menu: new Audio("Title Screen.wav"),
   fase1: new Audio("Level 1.wav"),
@@ -44,6 +44,7 @@ function drawBackground() {
     s.x -= s.speed; if (s.x < 0) { s.x = canvas.width; s.y = Math.random() * canvas.height; }
   });
 }
+
 // 🚀 Nave
 const shipImg = new Image(); shipImg.src = "ship.png";
 function drawShip() {
@@ -69,7 +70,7 @@ function spawnPowerUp() {
 // 🔍 Colisão
 const isColliding = (a,b)=>a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
 
-// 🎮 Loop principal
+// 🎮 Atualização
 function update() {
   ctx.clearRect(0,0,canvas.width,canvas.height);
   drawBackground(); drawShip();
@@ -96,6 +97,7 @@ function update() {
 
   drawHUD();
 }
+
 // 🖥️ HUD
 function drawHUD() {
   ctx.fillStyle="white"; ctx.font="16px 'Press Start 2P'";
@@ -130,6 +132,7 @@ volumeSlider.addEventListener("input",()=>{ let v=volumeSlider.value/100; Object
 startBtn.addEventListener("click", () => {
   menu.style.display = "none";
   canvas.style.display = "block";
+  canvas.focus();
   gameState.running = true;
   gameState.phase = 1;
   initStars();
@@ -140,7 +143,7 @@ startBtn.addEventListener("click", () => {
 });
 
 // 🎮 Controles
-document.addEventListener("keydown", e => {
+canvas.addEventListener("keydown", e => {
   if(e.key === "ArrowUp") gameState.ship.y -= gameState.ship.speed;
   if(e.key === "ArrowDown") gameState.ship.y += gameState.ship.speed;
   if(e.key === " ") shoot();
