@@ -115,14 +115,26 @@ function drawHUD() {
 
 // 🏆 Score
 function saveScore(){
-  let ranking = JSON.parse(localStorage.getItem("ranking")) || [];
+  // sempre começa com array válido
+  let ranking = Array.isArray(JSON.parse(localStorage.getItem("ranking"))) 
+    ? JSON.parse(localStorage.getItem("ranking")) 
+    : [];
+
+  // pega nome do campo
   let nameField = document.getElementById("playerName");
   let name = nameField && nameField.value.trim() !== "" ? nameField.value.trim() : "Player";
 
-  ranking.push({ name: name, score: gameState.score });
+  // adiciona score
+  ranking.push({ name: String(name), score: Number(gameState.score) });
+
+  // ordena e limita
   ranking.sort((a,b)=>b.score-a.score);
   ranking = ranking.slice(0,5);
+
+  // salva no localStorage
   localStorage.setItem("ranking", JSON.stringify(ranking));
+
+  // atualiza estado
   gameState.ranking = ranking;
 }
 
