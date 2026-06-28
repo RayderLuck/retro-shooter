@@ -15,11 +15,10 @@ let gameState = {
   phase: 0, ranking: JSON.parse(localStorage.getItem("ranking")) || []
 };
 
-// 🎶 Sons (nomes batendo com sua pasta)
+// 🎶 Sons (apenas os arquivos que você tem)
 const sounds = {
   menu: new Audio("menu.wav"),
   fase1: new Audio("fase1.wav"),
-  fase2: new Audio("fase2.wav"),
   fase3: new Audio("fase3.wav"),
   fase4: new Audio("fase4.wav"),
   ending: new Audio("Ending.wav"),
@@ -130,7 +129,6 @@ function playMusic(p){
   gameState.phase=p; 
   if(p===0) sounds.menu.play(); 
   if(p===1) sounds.fase1.play(); 
-  if(p===2) sounds.fase2.play(); 
   if(p===3) sounds.fase3.play(); 
   if(p===4) sounds.fase4.play(); 
   if(p===5) sounds.ending.play(); 
@@ -154,7 +152,6 @@ startBtn.addEventListener("click", () => {
   loop();
 });
 
-
 // 🖱️ Nave segue o mouse (horizontal + vertical)
 document.addEventListener("mousemove", e => {
   const rect = canvas.getBoundingClientRect();
@@ -175,5 +172,4 @@ function stopAutoShoot() {
   clearInterval(autoShoot);
 }
 
-// 🎮 Loop de animação
-function loop()
+//
