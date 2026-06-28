@@ -1,4 +1,4 @@
-// 🎮 Retro Shooter Simplificado
+// 🎮 Retro Shooter Simplificado e Funcional
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
@@ -128,3 +128,22 @@ function playMusic(p){ stopMusic(); gameState.phase=p; if(p===0) sounds.menu.pla
 
 // 🔊 Volume
 volumeSlider.addEventListener("input",()=>{ let v=volumeSlider.value/100; Object.values(sounds).forEach(m=>m.volume=v); });
+
+// 🚀 Iniciar jogo
+startBtn.addEventListener("click", () => {
+  menu.style.display = "none";
+  canvas.style.display = "block";
+  gameState.running = true;
+  gameState.phase = 1;
+  initStars();
+  playMusic(1);
+  loop();
+});
+
+// 🎮 Loop de animação
+function loop() {
+  if (gameState.running) {
+    update();
+    requestAnimationFrame(loop);
+  }
+}
