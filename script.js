@@ -259,3 +259,30 @@ volumeSlider.addEventListener("input", () => {
   [menuMusic, fase1Music, fase2Music, fase3Music, fase4Music].forEach(m => m.volume = vol);
   shootSound.volume = vol;
 });
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Retro Shooter</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Menu principal -->
+  <div id="menu">
+    <h1>🚀 Retro Shooter</h1>
+    <button id="startBtn">START</button>
+    <button id="optionsBtn">OPÇÕES</button>
+    <button id="aboutBtn">SOBRE</button>
+    <!-- Controle de volume que o script.js espera -->
+    <label for="volumeSlider">Volume:</label>
+    <input type="range" id="volumeSlider" min="0" max="100" value="50">
+  </div>
+
+  <!-- Canvas do jogo -->
+  <canvas id="gameCanvas" width="800" height="600" style="display:none;"></canvas>
+
+  <!-- Script principal -->
+  <script src="script.js"></script>
+</body>
+</html>
