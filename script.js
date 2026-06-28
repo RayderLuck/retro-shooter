@@ -94,8 +94,7 @@ function drawHUD() {
   ctx.fillText(`Lives: ${gameState.lives}`,20,60);
   ctx.fillText(`Weapon: ${gameState.weaponLevel}`,20,90);
 }
-
-// 🏆 Score
+// 🏆 Score e Ranking
 function saveScore(){
   let ranking = JSON.parse(localStorage.getItem("ranking"));
   if(!Array.isArray(ranking)) ranking = [];
@@ -154,4 +153,23 @@ document.addEventListener("keydown", e => { if(e.key==="p"){ gameState.running=!
 
 // 🔫 Auto Shoot
 let autoShoot;
-function startAutoShoot(){ autoShoot=setInterval
+function startAutoShoot(){ autoShoot=setInterval(()=>{ if(gameState.running) shoot(); },500); }
+function stopAutoShoot(){ clearInterval(autoShoot); }
+
+// 🎮 Loop
+function loop(){ if(gameState.running){ update(); requestAnimationFrame(loop); }}
+
+// ✨ Fade-in/Fade-out
+function fade(el,show){
+  if(!el) return;
+  el.style.display="block"; el.style.opacity=show?0:1;
+  let op=show?0:1, step=show?0.05:-0.05;
+  function anim(){
+    op+=step; el.style.opacity=op;
+    if((show && op>=1)||( !show && op<=0)){
+      if(!show) el.style.display="none"; return;
+    }
+    requestAnimationFrame(anim);
+  }
+  anim();
+}
