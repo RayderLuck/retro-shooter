@@ -1,4 +1,4 @@
-// 🎮 Retro Shooter Refatorado
+// 🎮 Retro Shooter Simplificado
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
@@ -6,182 +6,93 @@ const startBtn = document.getElementById("startBtn");
 const menu = document.getElementById("menu");
 const volumeSlider = document.getElementById("volumeSlider");
 
-// 🚀 Estado do jogo centralizado
+// 🚀 Estado centralizado
 let gameState = {
-  ship: { x: 100, y: 250, width: 80, height: 40, speed: 5 },
-  bullets: [],
-  enemies: [],
-  powerUps: [],
-  stars: [],
-  running: false,
-  score: 0,
-  lives: 3,
-  weaponLevel: 1,
-  shieldActive: false,
-  speedBoost: false,
-  currentPhase: 0,
-  ranking: JSON.parse(localStorage.getItem("ranking")) || []
+  ship: { x: 100, y: 250, w: 80, h: 40, speed: 5 },
+  bullets: [], enemies: [], powerUps: [], stars: [],
+  running: false, score: 0, lives: 3,
+  weaponLevel: 1, shield: false, boost: false,
+  phase: 0, ranking: JSON.parse(localStorage.getItem("ranking")) || []
 };
 
-// 🚀 Sprite da nave
-let shipImg = new Image();
-shipImg.src = "ship.png";
+// 🎶 Sons
+const sounds = {
+  menu: new Audio("menu.mp3"),
+  fase1: new Audio("fase1.mp3"),
+  fase2: new Audio("fase2.mp3"),
+  fase3: new Audio("fase3.mp3"),
+  fase4: new Audio("fase4.mp3"),
+  shoot: new Audio("laser1.wav")
+};
+Object.values(sounds).forEach(m => { m.loop = true; m.volume = 0.5; });
+sounds.shoot.volume = 0.7;
 
-// 🎶 Músicas
-let menuMusic = new Audio("menu.mp3");
-let fase1Music = new Audio("fase1.mp3");
-let fase2Music = new Audio("fase2.mp3");
-let fase3Music = new Audio("fase3.mp3");
-let fase4Music = new Audio("fase4.mp3");
-[menuMusic, fase1Music, fase2Music, fase3Music, fase4Music].forEach(m => {
-  m.loop = true;
-  m.volume = 0.5;
-});
-
-// 🔫 Som do tiro
-let shootSound = new Audio("laser1.wav");
-shootSound.volume = 0.7;
-
-// 🌌 Fundo animado
+// 🌌 Fundo
 function initStars() {
-  gameState.stars = [];
-  for (let i = 0; i < 100; i++) {
-    gameState.stars.push({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
-      size: Math.random() * 2,
-      speed: Math.random() * 1.5 + 0.5
-    });
-  }
+  gameState.stars = Array.from({ length: 100 }, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    size: Math.random() * 2,
+    speed: Math.random() * 2
+  }));
 }
-
 function drawBackground() {
-  ctx.fillStyle = "black";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "black"; ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = "white";
-  gameState.stars.forEach(star => {
-    ctx.beginPath();
-    ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
-    ctx.fill();
-    star.x -= star.speed;
-    if (star.x < 0) {
-      star.x = canvas.width;
-      star.y = Math.random() * canvas.height;
-    }
+  gameState.stars.forEach(s => {
+    ctx.beginPath(); ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2); ctx.fill();
+    s.x -= s.speed; if (s.x < 0) { s.x = canvas.width; s.y = Math.random() * canvas.height; }
   });
 }
 
 // 🚀 Nave
+const shipImg = new Image(); shipImg.src = "ship.png";
 function drawShip() {
-  if (shipImg.complete) {
-    ctx.drawImage(shipImg, gameState.ship.x, gameState.ship.y, gameState.ship.width, gameState.ship.height);
-  } else {
-    ctx.fillStyle = gameState.shieldActive ? "cyan" : "lime";
-    ctx.fillRect(gameState.ship.x, gameState.ship.y, gameState.ship.width, gameState.ship.height);
-  }
+  if (shipImg.complete) ctx.drawImage(shipImg, gameState.ship.x, gameState.ship.y, gameState.ship.w, gameState.ship.h);
+  else { ctx.fillStyle = gameState.shield ? "cyan" : "lime"; ctx.fillRect(gameState.ship.x, gameState.ship.y, gameState.ship.w, gameState.ship.h); }
 }
 
 // 🔫 Disparo
 function shoot() {
-  let s = gameState.ship;
-  if (gameState.weaponLevel === 1) {
-    gameState.bullets.push({ x: s.x + s.width, y: s.y + s.height / 2, width: 5, height: 2, speed: 7 });
-  } else if (gameState.weaponLevel === 2) {
-    gameState.bullets.push({ x: s.x + s.width, y: s.y + 5, width: 5, height: 2, speed: 7 });
-    gameState.bullets.push({ x: s.x + s.width, y: s.y + s.height - 5, width: 5, height: 2, speed: 7 });
-  } else if (gameState.weaponLevel === 3) {
-    gameState.bullets.push({ x: s.x + s.width, y: s.y, width: 5, height: 2, speed: 7 });
-    gameState.bullets.push({ x: s.x + s.width, y: s.y + s.height / 2, width: 5, height: 2, speed: 7 });
-    gameState.bullets.push({ x: s.x + s.width, y: s.y + s.height, width: 5, height: 2, speed: 7 });
-  }
-  shootSound.currentTime = 0;
-  shootSound.play();
+  let s = gameState.ship, b = gameState.bullets;
+  let y = [s.h/2]; if (gameState.weaponLevel > 1) y = [5, s.h-5]; if (gameState.weaponLevel > 2) y = [0, s.h/2, s.h];
+  y.forEach(pos => b.push({ x: s.x+s.w, y: s.y+pos, w:5, h:2, speed:7 }));
+  sounds.shoot.currentTime = 0; sounds.shoot.play();
 }
 
-// 👾 Inimigos
-function spawnEnemy() {
-  let y = Math.random() * (canvas.height - 20);
-  gameState.enemies.push({ x: canvas.width, y, width: 30, height: 30, speed: 3 });
-}
-
-// 🎁 Power-ups
+// 👾 Inimigos e PowerUps
+function spawnEnemy() { gameState.enemies.push({ x: canvas.width, y: Math.random()*(canvas.height-20), w:30, h:30, speed:3 }); }
 function spawnPowerUp() {
-  let y = Math.random() * (canvas.height - 20);
-  let type = Math.floor(Math.random() * 3);
-  let color = type === 0 ? "blue" : type === 1 ? "green" : "yellow";
-  gameState.powerUps.push({ x: canvas.width, y, width: 20, height: 20, speed: 2, type, color });
+  let type = Math.floor(Math.random()*3), colors=["blue","green","yellow"];
+  gameState.powerUps.push({ x: canvas.width, y: Math.random()*(canvas.height-20), w:20, h:20, speed:2, type, color:colors[type] });
 }
 
-// 💥 Explosão
-function drawExplosion(x, y) {
-  ctx.fillStyle = "red";
-  ctx.beginPath();
-  ctx.arc(x, y, 20, 0, Math.PI * 2);
-  ctx.fill();
-}
+// 🔍 Colisão
+const isColliding = (a,b)=>a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
 
-// 🔍 Colisão genérica
-function isColliding(a, b) {
-  return a.x < b.x + b.width &&
-         a.x + a.width > b.x &&
-         a.y < b.y + b.height &&
-         a.y + a.height > b.y;
-}
-
-// 🎮 Atualização
+// 🎮 Loop principal
 function update() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  drawBackground();
-  drawShip();
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  drawBackground(); drawShip();
 
   // Balas
-  gameState.bullets.forEach((b, bi) => {
-    b.x += b.speed;
-    ctx.fillStyle = "yellow";
-    ctx.fillRect(b.x, b.y, b.width, b.height);
-    gameState.enemies.forEach((e, ei) => {
-      if (isColliding(b, e)) {
-        drawExplosion(e.x, e.y);
-        gameState.enemies.splice(ei, 1);
-        gameState.bullets.splice(bi, 1);
-        enemyDestroyed();
-      }
-    });
+  gameState.bullets.forEach((b,i)=>{ b.x+=b.speed; ctx.fillStyle="yellow"; ctx.fillRect(b.x,b.y,b.w,b.h);
+    gameState.enemies.forEach((e,j)=>{ if(isColliding(b,e)){ gameState.enemies.splice(j,1); gameState.bullets.splice(i,1); enemyDestroyed(); }});
   });
 
   // Inimigos
-  gameState.enemies.forEach((e, ei) => {
-    e.x -= e.speed;
-    ctx.fillStyle = "red";
-    ctx.fillRect(e.x, e.y, e.width, e.height);
-    if (!gameState.shieldActive && isColliding(gameState.ship, e)) {
-      drawExplosion(gameState.ship.x + gameState.ship.width / 2, gameState.ship.y + gameState.ship.height / 2);
-      gameState.enemies.splice(ei, 1);
-      gameState.lives--;
-      if (gameState.lives <= 0) endGame();
-    }
-    if (e.x + e.width < 0) gameState.enemies.splice(ei, 1);
+  gameState.enemies.forEach((e,i)=>{ e.x-=e.speed; ctx.fillStyle="red"; ctx.fillRect(e.x,e.y,e.w,e.h);
+    if(!gameState.shield && isColliding(gameState.ship,e)){ gameState.enemies.splice(i,1); gameState.lives--; if(gameState.lives<=0) endGame(); }
+    if(e.x+e.w<0) gameState.enemies.splice(i,1);
   });
 
-  // Power-ups
-  gameState.powerUps.forEach((p, pi) => {
-    p.x -= p.speed;
-    ctx.fillStyle = p.color;
-    ctx.fillRect(p.x, p.y, p.width, p.height);
-    if (isColliding(gameState.ship, p)) {
-      if (p.type === 0) {
-        gameState.weaponLevel = Math.min(3, gameState.weaponLevel + 1);
-      } else if (p.type === 1) {
-        gameState.shieldActive = true;
-        setTimeout(() => gameState.shieldActive = false, 5000);
-      } else if (p.type === 2) {
-        gameState.speedBoost = true;
-        gameState.ship.speed = 10;
-        setTimeout(() => { gameState.speedBoost = false; gameState.ship.speed = 5; }, 5000);
-      }
-      gameState.powerUps.splice(pi, 1);
-    }
-    if (p.x + p.width < 0) gameState.powerUps.splice(pi, 1);
+  // PowerUps
+  gameState.powerUps.forEach((p,i)=>{ p.x-=p.speed; ctx.fillStyle=p.color; ctx.fillRect(p.x,p.y,p.w,p.h);
+    if(isColliding(gameState.ship,p)){ if(p.type===0) gameState.weaponLevel=Math.min(3,gameState.weaponLevel+1);
+      if(p.type===1){ gameState.shield=true; setTimeout(()=>gameState.shield=false,5000); }
+      if(p.type===2){ gameState.boost=true; gameState.ship.speed=10; setTimeout(()=>{gameState.boost=false; gameState.ship.speed=5;},5000); }
+      gameState.powerUps.splice(i,1); }
+    if(p.x+p.w<0) gameState.powerUps.splice(i,1);
   });
 
   drawHUD();
@@ -189,100 +100,31 @@ function update() {
 
 // 🖥️ HUD
 function drawHUD() {
-  ctx.fillStyle = "white";
-  ctx.font = "16px 'Press Start 2P'";
-  ctx.fillText("Score: " + gameState.score, 20, 30);
-  ctx.fillText("High Score: " + (gameState.ranking[0]?.score || 0), 20, 60);
-  ctx.fillText("Lives: " + gameState.lives, 20, 90);
-  ctx.fillText("Weapon Lvl: " + gameState.weaponLevel, 20, 120);
-  ctx.fillText("Phase: " + gameState.currentPhase, 20, 150);
+  ctx.fillStyle="white"; ctx.font="16px 'Press Start 2P'";
+  ctx.fillText(`Score: ${gameState.score}`,20,30);
+  ctx.fillText(`High: ${gameState.ranking[0]?.score||0}`,20,60);
+  ctx.fillText(`Lives: ${gameState.lives}`,20,90);
+  ctx.fillText(`Weapon: ${gameState.weaponLevel}`,20,120);
+  ctx.fillText(`Phase: ${gameState.phase}`,20,150);
 }
+
 // 🏆 Pontuação
-function enemyDestroyed() {
-  gameState.score += 100;
-  if (gameState.score >= 2000 && gameState.currentPhase === 1) playMusicForPhase(2);
-  if (gameState.score >= 4000 && gameState.currentPhase === 2) playMusicForPhase(3);
-  if (gameState.score >= 6000 && gameState.currentPhase === 3) playMusicForPhase(4);
-}
+function enemyDestroyed(){ gameState.score+=100; if(gameState.score>=2000&&gameState.phase===1) playMusic(2);
+  if(gameState.score>=4000&&gameState.phase===2) playMusic(3); if(gameState.score>=6000&&gameState.phase===3) playMusic(4); }
 
 // 🔚 Fim de jogo
-function endGame() {
-  gameState.running = false;
-  stopAllMusic();
-  menuMusic.play();
-  let playerName = "Player";
-  if (gameState.score > (gameState.ranking[0]?.score || 0)) {
-    playerName = prompt("Novo recorde! Digite seu nome:");
-  }
-  gameState.ranking.push({ name: playerName, score: gameState.score });
-  gameState.ranking.sort((a, b) => b.score - a.score);
-  gameState.ranking = gameState.ranking.slice(0, 5);
-  localStorage.setItem("ranking", JSON.stringify(gameState.ranking));
-
-  // reset
-  gameState.score = 0;
-  gameState.lives = 3;
-  gameState.weaponLevel = 1;
-  showRanking();
+function endGame(){
+  gameState.running=false; stopMusic(); sounds.menu.play();
+  let name="Player"; if(gameState.score>(gameState.ranking[0]?.score||0)) name=prompt("Novo recorde! Nome:");
+  gameState.ranking.push({name,score:gameState.score}); gameState.ranking.sort((a,b)=>b.score-a.score); gameState.ranking=gameState.ranking.slice(0,5);
+  localStorage.setItem("ranking",JSON.stringify(gameState.ranking));
+  gameState.score=0; gameState.lives=3; gameState.weaponLevel=1; showRanking();
 }
+function showRanking(){ alert("TOP 5:\n"+gameState.ranking.map((e,i)=>`${i+1}º - ${e.name}: ${e.score}`).join("\n")); }
 
-// 📊 Ranking
-function showRanking() {
-  let rankingText = "TOP 5 SCORES:\n";
-  gameState.ranking.forEach((entry, i) => {
-    rankingText += (i + 1) + "º - " + entry.name + " : " + entry.score + "\n";
-  });
-  alert(rankingText);
-}
+// 🎵 Música
+function stopMusic(){ Object.values(sounds).forEach(m=>{m.pause();m.currentTime=0;}); }
+function playMusic(p){ stopMusic(); gameState.phase=p; if(p===0) sounds.menu.play(); if(p===1) sounds.fase1.play(); if(p===2) sounds.fase2.play(); if(p===3) sounds.fase3.play(); if(p===4) sounds.fase4.play(); }
 
-// 🎵 Funções de música
-function stopAllMusic() {
-  [menuMusic, fase1Music, fase2Music, fase3Music, fase4Music].forEach(m => {
-    m.pause();
-    m.currentTime = 0;
-  });
-}
-
-function playMusicForPhase(phase) {
-  stopAllMusic();
-  gameState.currentPhase = phase;
-  if (phase === 0) menuMusic.play();
-  if (phase === 1) fase1Music.play();
-  if (phase === 2) fase2Music.play();
-  if (phase === 3) fase3Music.play();
-  if (phase === 4) fase4Music.play();
-}
-
-// 🔊 Controle de volume
-volumeSlider.addEventListener("input", () => {
-  let vol = volumeSlider.value / 100;
-  [menuMusic, fase1Music, fase2Music, fase3Music, fase4Music].forEach(m => m.volume = vol);
-  shootSound.volume = vol;
-});
-
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <title>Retro Shooter</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <!-- Menu principal -->
-  <div id="menu">
-    <h1>🚀 Retro Shooter</h1>
-    <button id="startBtn">START</button>
-    <button id="optionsBtn">OPÇÕES</button>
-    <button id="aboutBtn">SOBRE</button>
-    <!-- Controle de volume que o script.js espera -->
-    <label for="volumeSlider">Volume:</label>
-    <input type="range" id="volumeSlider" min="0" max="100" value="50">
-  </div>
-
-  <!-- Canvas do jogo -->
-  <canvas id="gameCanvas" width="800" height="600" style="display:none;"></canvas>
-
-  <!-- Script principal -->
-  <script src="script.js"></script>
-</body>
-</html>
+// 🔊 Volume
+volumeSlider.addEventListener("input",()=>{ let v=volumeSlider.value/100; Object.values(sounds).forEach(m=>m.volume=v); });
