@@ -140,10 +140,16 @@ function saveScore(){
 
 // Atualiza ranking no menu
 function updateRankingMenu(){
-  let ranking = JSON.parse(localStorage.getItem("ranking")) || [];
+  let ranking = Array.isArray(JSON.parse(localStorage.getItem("ranking"))) 
+    ? JSON.parse(localStorage.getItem("ranking")) 
+    : [];
+
   document.getElementById("rankingList").innerText =
-    ranking.map((e,i)=>`${i+1}º - ${e.name}: ${e.score}`).join("\n");
+    ranking.length > 0 
+      ? ranking.map((e,i)=>`${i+1}º - ${e.name}: ${e.score}`).join("\n")
+      : "Nenhum score salvo ainda";
 }
+
 
 // 🔚 Game Over
 function endGame(){
