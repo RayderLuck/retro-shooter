@@ -1,4 +1,4 @@
-// 🎮 Retro Shooter Completo e Funcional
+// 🎮 Retro Shooter Completo com Mouse + Auto Shoot
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
@@ -114,6 +114,7 @@ function enemyDestroyed(){ gameState.score+=100; }
 // 🔚 Fim de jogo
 function endGame(){
   gameState.running=false; stopMusic(); sounds.menu.play();
+  stopAutoShoot();
   let name="Player"; if(gameState.score>(gameState.ranking[0]?.score||0)) name=prompt("Novo recorde! Nome:");
   gameState.ranking.push({name,score:gameState.score}); gameState.ranking.sort((a,b)=>b.score-a.score); gameState.ranking=gameState.ranking.slice(0,5);
   localStorage.setItem("ranking",JSON.stringify(gameState.ranking));
@@ -139,15 +140,27 @@ startBtn.addEventListener("click", () => {
   playMusic(1);
   setInterval(spawnEnemy, 2000);
   setInterval(spawnPowerUp, 10000);
+  startAutoShoot();
   loop();
 });
 
-// 🎮 Controles
-canvas.addEventListener("keydown", e => {
-  if(e.key === "ArrowUp") gameState.ship.y -= gameState.ship.speed;
-  if(e.key === "ArrowDown") gameState.ship.y += gameState.ship.speed;
-  if(e.key === " ") shoot();
+// 🎮 Nave segue o mouse
+canvas.addEventListener("mousemove", e => {
+  const rect = canvas.getBoundingClientRect();
+  const mouseY = e.clientY - rect.top;
+  gameState.ship.y = mouseY - gameState.ship.h / 2;
 });
+
+// 🔫 Auto Shoot
+let autoShoot;
+function startAutoShoot() {
+  autoShoot = setInterval(() => {
+    if (gameState.running) shoot();
+  }, 500); // 2 tiros por segundo
+}
+function stopAutoShoot() {
+  clearInterval(autoShoot);
+}
 
 // 🎮 Loop de animação
 function loop() {
