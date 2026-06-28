@@ -15,13 +15,13 @@ let gameState = {
   phase: 0, ranking: JSON.parse(localStorage.getItem("ranking")) || []
 };
 
-// 🎶 Sons
+// 🎶 Sons (nomes ajustados para seus arquivos .wav)
 const sounds = {
-  menu: new Audio("Title Screen.wav"),
+  menu: new Audio("Juhani Junkala [Retro Game Music Pack] Title Screen.wav"),
   fase1: new Audio("Level 1.wav"),
   fase2: new Audio("Level 2.wav"),
   fase3: new Audio("Level 3.wav"),
-  ending: new Audio("Ending.wav"),
+  ending: new Audio("Juhani Junkala [Retro Game Music Pack] Ending.wav"),
   shoot: new Audio("laser1.wav")
 };
 Object.values(sounds).forEach(m => { m.loop = true; m.volume = 0.5; });
@@ -169,3 +169,4 @@ function loop() {
     requestAnimationFrame(loop);
   }
 }
+``
