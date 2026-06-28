@@ -1,4 +1,4 @@
-// 🎮 Retro Shooter v4.0
+// 🎮 Retro Shooter v4.1 — Ranking corrigido
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
@@ -15,7 +15,7 @@ let gameState = {
   bullets: [], enemies: [], powerUps: [], stars: [],
   running: false, score: 0, lives: 3,
   weaponLevel: 1, shield: false, boost: false,
-  ranking: JSON.parse(localStorage.getItem("ranking")) || []
+  ranking: []
 };
 
 // 🎶 Sons
@@ -115,41 +115,30 @@ function drawHUD() {
 
 // 🏆 Score
 function saveScore(){
-  // sempre começa com array válido
-  let ranking = Array.isArray(JSON.parse(localStorage.getItem("ranking"))) 
-    ? JSON.parse(localStorage.getItem("ranking")) 
-    : [];
+  let ranking = JSON.parse(localStorage.getItem("ranking"));
+  if(!Array.isArray(ranking)) ranking = [];
 
-  // pega nome do campo
   let nameField = document.getElementById("playerName");
   let name = nameField && nameField.value.trim() !== "" ? nameField.value.trim() : "Player";
 
-  // adiciona score
   ranking.push({ name: String(name), score: Number(gameState.score) });
-
-  // ordena e limita
   ranking.sort((a,b)=>b.score-a.score);
   ranking = ranking.slice(0,5);
 
-  // salva no localStorage
   localStorage.setItem("ranking", JSON.stringify(ranking));
-
-  // atualiza estado
   gameState.ranking = ranking;
 }
 
 // Atualiza ranking no menu
 function updateRankingMenu(){
-  let ranking = Array.isArray(JSON.parse(localStorage.getItem("ranking"))) 
-    ? JSON.parse(localStorage.getItem("ranking")) 
-    : [];
+  let ranking = JSON.parse(localStorage.getItem("ranking"));
+  if(!Array.isArray(ranking)) ranking = [];
 
   document.getElementById("rankingList").innerText =
     ranking.length > 0 
       ? ranking.map((e,i)=>`${i+1}º - ${e.name}: ${e.score}`).join("\n")
       : "Nenhum score salvo ainda";
 }
-
 
 // 🔚 Game Over
 function endGame(){
@@ -179,6 +168,12 @@ function restartGame(){
 
 // 🚀 Iniciar jogo
 startBtn.addEventListener("click", () => {
+  let nameField = document.getElementById("playerName");
+  if(!nameField.value.trim()){
+    alert("Digite seu nome antes de começar!");
+    return;
+  }
+
   menu.style.display = "none";
   canvas.style.display = "block";
   canvas.focus();
@@ -203,31 +198,4 @@ volumeSlider.addEventListener("input",()=>{ let v=volumeSlider.value/100; Object
 
 // 🖱️ Nave segue o mouse
 document.addEventListener("mousemove", e => {
-  const rect = canvas.getBoundingClientRect();
-  const mouseX = e.clientX - rect.left;
-  const mouseY = e.clientY - rect.top;
-  gameState.ship.x = mouseX - gameState.ship.w / 2;
-  gameState.ship.y = mouseY - gameState.ship.h / 2;
-});
-
-// ⏸️ Pausa com tecla P
-document.addEventListener("keydown", e => {
-  if(e.key === "p"){
-    gameState.running = !gameState.running;
-    if(gameState.running) loop();
-  }
-});
-
-// 🔫 Auto Shoot
-let autoShoot;
-function startAutoShoot() {
-  autoShoot = setInterval(() => {
-    if (gameState.running) shoot();
-  }, 500);
-}
-function stopAutoShoot() { clearInterval(autoShoot); }
-
-// 🎮 Loop
-function loop() {
-  if(gameState.running){ update(); requestAnimationFrame(loop); }
-}
+  const rect = canvas.get
