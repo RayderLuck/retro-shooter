@@ -1,4 +1,4 @@
-// 🎮 Retro Shooter v4.1 — Ranking corrigido
+// 🎮 Retro Shooter v5.0 — Ranking + Fade
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
@@ -9,7 +9,6 @@ const gameOverScreen = document.getElementById("gameOver");
 const finalScore = document.getElementById("finalScore");
 const rankingBox = document.getElementById("ranking");
 
-// 🚀 Estado do jogo
 let gameState = {
   ship: { x: 100, y: 250, w: 80, h: 40, speed: 5 },
   bullets: [], enemies: [], powerUps: [], stars: [],
@@ -19,20 +18,15 @@ let gameState = {
 };
 
 // 🎶 Sons
-const sounds = {
-  fase1: new Audio("fase1.wav"),
-  shoot: new Audio("laser1.wav")
-};
+const sounds = { fase1: new Audio("fase1.wav"), shoot: new Audio("laser1.wav") };
 Object.values(sounds).forEach(m => { m.loop = true; m.volume = 0.5; });
 sounds.shoot.loop = false; sounds.shoot.volume = 0.7;
 
 // 🌌 Fundo estrelado
 function initStars() {
   gameState.stars = Array.from({ length: 100 }, () => ({
-    x: Math.random() * canvas.width,
-    y: Math.random() * canvas.height,
-    size: Math.random() * 2,
-    speed: Math.random() * 2
+    x: Math.random() * canvas.width, y: Math.random() * canvas.height,
+    size: Math.random() * 2, speed: Math.random() * 2
   }));
 }
 function drawBackground() {
@@ -53,8 +47,7 @@ function drawShip() {
 
 // 🔫 Disparo
 function shoot() {
-  let s = gameState.ship;
-  let y = [s.h/2];
+  let s = gameState.ship, y = [s.h/2];
   if (gameState.weaponLevel > 1) y = [5, s.h-5];
   if (gameState.weaponLevel > 2) y = [0, s.h/2, s.h];
   y.forEach(pos => gameState.bullets.push({ x: s.x+s.w, y: s.y+pos, w:5, h:2, speed:7 }));
@@ -76,31 +69,20 @@ function update() {
   ctx.clearRect(0,0,canvas.width,canvas.height);
   drawBackground(); drawShip();
 
-  // Balas
   gameState.bullets.forEach((b,i)=>{ b.x+=b.speed; ctx.fillStyle="yellow"; ctx.fillRect(b.x,b.y,b.w,b.h);
-    gameState.enemies.forEach((e,j)=>{ if(isColliding(b,e)){ gameState.enemies.splice(j,1); gameState.bullets.splice(i,1); gameState.score+=100; }});
-  });
+    gameState.enemies.forEach((e,j)=>{ if(isColliding(b,e)){ gameState.enemies.splice(j,1); gameState.bullets.splice(i,1); gameState.score+=100; }}); });
 
-  // Inimigos
   gameState.enemies.forEach((e,i)=>{ e.x-=e.speed; ctx.fillStyle="red"; ctx.fillRect(e.x,e.y,e.w,e.h);
-    if(!gameState.shield && isColliding(gameState.ship,e)){
-      gameState.enemies.splice(i,1);
-      gameState.lives--;
-      if(gameState.lives <= 0){ gameState.lives = 0; endGame(); }
-    }
-    if(e.x+e.w<0) gameState.enemies.splice(i,1);
-  });
+    if(!gameState.shield && isColliding(gameState.ship,e)){ gameState.enemies.splice(i,1); gameState.lives--; if(gameState.lives<=0){ endGame(); }} 
+    if(e.x+e.w<0) gameState.enemies.splice(i,1); });
 
-  // PowerUps
   gameState.powerUps.forEach((p,i)=>{ p.x-=p.speed; ctx.fillStyle=p.color; ctx.fillRect(p.x,p.y,p.w,p.h);
-    if(isColliding(gameState.ship,p)){
+    if(isColliding(gameState.ship,p)){ 
       if(p.type===0) gameState.weaponLevel=Math.min(3,gameState.weaponLevel+1);
       if(p.type===1){ gameState.shield=true; setTimeout(()=>gameState.shield=false,5000); }
       if(p.type===2){ gameState.boost=true; gameState.ship.speed=10; setTimeout(()=>{gameState.boost=false; gameState.ship.speed=5;},5000); }
-      gameState.powerUps.splice(i,1);
-    }
-    if(p.x+p.w<0) gameState.powerUps.splice(i,1);
-  });
+      gameState.powerUps.splice(i,1); }
+    if(p.x+p.w<0) gameState.powerUps.splice(i,1); });
 
   drawHUD();
 }
@@ -117,76 +99,40 @@ function drawHUD() {
 function saveScore(){
   let ranking = JSON.parse(localStorage.getItem("ranking"));
   if(!Array.isArray(ranking)) ranking = [];
-
   let nameField = document.getElementById("playerName");
   let name = nameField && nameField.value.trim() !== "" ? nameField.value.trim() : "Player";
-
   ranking.push({ name: String(name), score: Number(gameState.score) });
   ranking.sort((a,b)=>b.score-a.score);
   ranking = ranking.slice(0,5);
-
   localStorage.setItem("ranking", JSON.stringify(ranking));
   gameState.ranking = ranking;
 }
-
-// Atualiza ranking no menu
 function updateRankingMenu(){
   let ranking = JSON.parse(localStorage.getItem("ranking"));
   if(!Array.isArray(ranking)) ranking = [];
-
   document.getElementById("rankingList").innerText =
-    ranking.length > 0 
-      ? ranking.map((e,i)=>`${i+1}º - ${e.name}: ${e.score}`).join("\n")
-      : "Nenhum score salvo ainda";
+    ranking.length ? ranking.map((e,i)=>`${i+1}º - ${e.name}: ${e.score}`).join("\n") : "Nenhum score salvo ainda";
 }
 
 // 🔚 Game Over
 function endGame(){
-  gameState.running=false;
-  stopMusic();
-  stopAutoShoot();
-  saveScore();
-
+  gameState.running=false; stopMusic(); stopAutoShoot(); saveScore();
   finalScore.innerText = "Score: " + gameState.score;
-  rankingBox.innerText = gameState.ranking
-    .map((e,i)=>`${i+1}º - ${e.name}: ${e.score}`)
-    .join("\n");
-
-  canvas.style.display = "none";
-  menu.style.display = "none";
-  gameOverScreen.style.display = "block";
-
+  rankingBox.innerText = gameState.ranking.map((e,i)=>`${i+1}º - ${e.name}: ${e.score}`).join("\n");
+  fade(menu,false); fade(canvas,false); fade(gameOverScreen,true);
   gameState.score=0; gameState.lives=3; gameState.weaponLevel=1;
 }
-
-// Reiniciar
-function restartGame(){
-  gameOverScreen.style.display = "none";
-  menu.style.display = "block";
-  updateRankingMenu();
-}
+function restartGame(){ fade(gameOverScreen,false); fade(menu,true); updateRankingMenu(); }
 
 // 🚀 Iniciar jogo
 startBtn.addEventListener("click", () => {
   let nameField = document.getElementById("playerName");
-  if(!nameField.value.trim()){
-    alert("Digite seu nome antes de começar!");
-    return;
-  }
-
-  menu.style.display = "none";
-  canvas.style.display = "block";
-  canvas.focus();
-  gameState.running = true;
-  initStars();
-  playMusic();
-  setInterval(spawnEnemy, 2000);
-  setInterval(spawnPowerUp, 10000);
-  startAutoShoot();
-  loop();
+  if(!nameField.value.trim()){ alert("Digite seu nome antes de começar!"); return; }
+  fade(menu,false); fade(canvas,true);
+  canvas.focus(); gameState.running = true; initStars(); playMusic();
+  setInterval(spawnEnemy, 2000); setInterval(spawnPowerUp, 10000);
+  startAutoShoot(); loop();
 });
-
-// Carrega ranking ao abrir
 updateRankingMenu();
 
 // 🎵 Música
@@ -198,4 +144,14 @@ volumeSlider.addEventListener("input",()=>{ let v=volumeSlider.value/100; Object
 
 // 🖱️ Nave segue o mouse
 document.addEventListener("mousemove", e => {
-  const rect = canvas.get
+  const rect = canvas.getBoundingClientRect();
+  gameState.ship.x = e.clientX - rect.left - gameState.ship.w/2;
+  gameState.ship.y = e.clientY - rect.top - gameState.ship.h/2;
+});
+
+// ⏸️ Pausa com tecla P
+document.addEventListener("keydown", e => { if(e.key==="p"){ gameState.running=!gameState.running; if(gameState.running) loop(); }});
+
+// 🔫 Auto Shoot
+let autoShoot;
+function startAutoShoot(){ autoShoot=setInterval
