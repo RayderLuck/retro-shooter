@@ -1,16 +1,27 @@
+/* Fonte retrô e reset */
 body {
-  background: black;
+  background: radial-gradient(circle at center, #000010 0%, #000000 100%);
   color: white;
   font-family: 'Press Start 2P', monospace;
   text-align: center;
   margin: 0;
   padding: 0;
+  overflow: hidden;
 }
 
+/* Menu principal */
 #menu {
   margin-top: 50px;
+  animation: fadeIn 1.5s ease-in-out;
 }
 
+h1 {
+  color: cyan;
+  text-shadow: 0 0 10px cyan, 0 0 20px blue;
+  animation: pulse 2s infinite;
+}
+
+/* Botões */
 button {
   font-family: 'Press Start 2P', monospace;
   font-size: 14px;
@@ -22,17 +33,20 @@ button {
   cursor: pointer;
   transition: all 0.3s ease;
 }
-
 button:hover {
   background: white;
   color: black;
-  box-shadow: 0 0 10px white;
+  box-shadow: 0 0 15px white;
+  transform: scale(1.1);
 }
 
+/* Canvas */
 #gameCanvas {
   display: block;
   margin: 20px auto;
   border: 2px solid white;
+  box-shadow: 0 0 20px cyan;
+  transition: opacity 1s ease-in-out;
 }
 
 /* Tela de Game Over */
@@ -41,32 +55,57 @@ button:hover {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: rgba(0,0,0,0.8);
-  border: 3px solid white;
+  background: rgba(0,0,0,0.85);
+  border: 3px solid red;
   padding: 30px;
   width: 400px;
-  box-shadow: 0 0 20px red;
+  box-shadow: 0 0 25px red;
+  opacity: 0;
+  transition: opacity 1s ease-in-out;
 }
-
 #gameOver h1 {
   color: red;
-  text-shadow: 2px 2px black;
+  text-shadow: 0 0 15px red, 0 0 30px darkred;
   margin-bottom: 20px;
+  animation: shake 1.5s infinite;
 }
-
 #gameOver p, #gameOver pre {
   margin: 10px 0;
   white-space: pre-line;
 }
-
 #gameOver button {
   margin-top: 20px;
   border: 2px solid red;
   color: red;
 }
-
 #gameOver button:hover {
   background: red;
   color: black;
-  box-shadow: 0 0 10px red;
+  box-shadow: 0 0 15px red;
+  transform: scale(1.1);
+}
+
+/* Ranking no menu */
+#rankingMenu {
+  margin-top: 20px;
+  color: white;
+  text-shadow: 0 0 5px white;
+}
+
+/* Animações */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes pulse {
+  0% { text-shadow: 0 0 10px cyan, 0 0 20px blue; }
+  50% { text-shadow: 0 0 20px white, 0 0 40px cyan; }
+  100% { text-shadow: 0 0 10px cyan, 0 0 20px blue; }
+}
+@keyframes shake {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  25% { transform: translate(-50%, -50%) rotate(1deg); }
+  50% { transform: translate(-50%, -50%) rotate(0deg); }
+  75% { transform: translate(-50%, -50%) rotate(-1deg); }
+  100% { transform: translate(-50%, -50%) rotate(0deg); }
 }
