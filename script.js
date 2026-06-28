@@ -116,15 +116,21 @@ function drawHUD() {
 // 🏆 Score
 function saveScore(){
   let ranking = JSON.parse(localStorage.getItem("ranking")) || [];
-  // pega o nome do campo no menu
   let nameField = document.getElementById("playerName");
   let name = nameField && nameField.value.trim() !== "" ? nameField.value.trim() : "Player";
-  
+
   ranking.push({ name: name, score: gameState.score });
   ranking.sort((a,b)=>b.score-a.score);
-  ranking = ranking.slice(0,5); // mantém só top 5
+  ranking = ranking.slice(0,5);
   localStorage.setItem("ranking", JSON.stringify(ranking));
   gameState.ranking = ranking;
+}
+
+// Atualiza ranking no menu
+function updateRankingMenu(){
+  let ranking = JSON.parse(localStorage.getItem("ranking")) || [];
+  document.getElementById("rankingList").innerText =
+    ranking.map((e,i)=>`${i+1}º - ${e.name}: ${e.score}`).join("\n");
 }
 
 // 🔚 Game Over
@@ -134,7 +140,6 @@ function endGame(){
   stopAutoShoot();
   saveScore();
 
-  // Atualiza tela
   finalScore.innerText = "Score: " + gameState.score;
   rankingBox.innerText = gameState.ranking
     .map((e,i)=>`${i+1}º - ${e.name}: ${e.score}`)
@@ -151,7 +156,25 @@ function endGame(){
 function restartGame(){
   gameOverScreen.style.display = "none";
   menu.style.display = "block";
+  updateRankingMenu();
 }
+
+// 🚀 Iniciar jogo
+startBtn.addEventListener("click", () => {
+  menu.style.display = "none";
+  canvas.style.display = "block";
+  canvas.focus();
+  gameState.running = true;
+  initStars();
+  playMusic();
+  setInterval(spawnEnemy, 2000);
+  setInterval(spawnPowerUp, 10000);
+  startAutoShoot();
+  loop();
+});
+
+// Carrega ranking ao abrir
+updateRankingMenu();
 
 // 🎵 Música
 function stopMusic(){ Object.values(sounds).forEach(m=>{m.pause();m.currentTime=0;}); }
