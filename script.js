@@ -1,4 +1,4 @@
-// 🎮 Retro Shooter v5.2 — Exploder Enemies + Animated Explosion
+// 🎮 Retro Shooter v5.1 — Exploder Enemies + Animated Explosion
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
@@ -74,7 +74,6 @@ function spawnPowerUp() {
     color: colors[type]
   });
 }
-
 // 💥 Explosão animada
 function explode(x, y) {
   gameState.explosions.push({ x: x+15, y: y+15, r: 5, maxR: 30, alpha: 1 });
@@ -110,8 +109,6 @@ function update() {
         gameState.score+=100;
       }
     }); 
-  });
-
   // Inimigos
   gameState.enemies.forEach((e,i)=>{ 
     e.x-=e.speed; ctx.fillStyle=e.type==="exploder"?"orange":"red"; 
@@ -124,7 +121,6 @@ function update() {
     }
     if(e.x+e.w<0) gameState.enemies.splice(i,1); 
   });
-
   // PowerUps
   gameState.powerUps.forEach((p,i)=>{ 
     p.x-=p.speed; ctx.fillStyle=p.color; ctx.fillRect(p.x,p.y,p.w,p.h);
@@ -173,7 +169,7 @@ function endGame(){
   gameState.running=false; stopMusic(); stopAutoShoot(); saveScore();
   finalScore.innerText = "Score: " + gameState.score;
   rankingBox.innerText = gameState.ranking.map((e,i)=>`${i+1}º - ${e.name}: ${e.score}`).join("\n");
-  fade(menu,false); fade(canvas,false); fade(gameOverScreen,true);
+ fade(menu,false); fade(canvas,false); fade(gameOverScreen,true);
   gameState.score=0; gameState.lives=3; gameState.weaponLevel=1;
 }
 function restartGame(){ fade(gameOverScreen,false); fade(menu,true); updateRankingMenu(); }
@@ -194,7 +190,10 @@ function stopMusic(){ Object.values(sounds).forEach(m=>{m.pause();m.currentTime=
 function playMusic(){ stopMusic(); sounds.fase1.play(); }
 
 // 🔊 Volume
-volumeSlider.addEventListener("input",()=>{ let v=volumeSlider.value/100; Object.values(sounds).forEach(m=>m.volume=v); });
+volumeSlider.addEventListener("input",()=>{ 
+  let v=volumeSlider.value/100; 
+  Object.values(sounds).forEach(m=>m.volume=v); 
+});
 
 // 🖱️ Nave segue o mouse
 document.addEventListener("mousemove", e => {
@@ -204,7 +203,12 @@ document.addEventListener("mousemove", e => {
 });
 
 // ⏸️ Pausa com tecla P
-document.addEventListener("keydown", e => { if(e.key==="p"){ gameState.running=!gameState.running; if(gameState.running) loop(); }});
+document.addEventListener("keydown", e => { 
+  if(e.key==="p"){ 
+    gameState.running=!gameState.running; 
+    if(gameState.running) loop(); 
+  }
+});
 
 // 🔫 Auto Shoot
 let autoShoot;
