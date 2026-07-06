@@ -136,7 +136,13 @@ function spawnEnemy() {
 }
 function spawnPowerUp() {
   let type = Math.floor(Math.random()*3), colors=["blue","green","yellow"];
-  gameState.powerUps.push({ x: canvas.width, y: Math.random()*(canvas.height-20), w:20, h:20, speed:2, type, color:colors[type] });
+  gameState.powerUps.push({
+    x: canvas.width,
+    y: Math.random()*(canvas.height-20),
+    w: 20, h: 20, speed: 2,
+    type: type, // adiciona o tipo sorteado
+    color: colors[type]
+  });
 }
 // 🖥️ HUD
 function drawHUD() {
