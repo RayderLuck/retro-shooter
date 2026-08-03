@@ -39,10 +39,12 @@ function drawBackground() {
   });
 }
 
-// 🚀 Nave (usando navio.png)
-const shipImg = new Image(); shipImg.src = "navio.png";
+// 🚀 Nave (carregando ship.png)
+const shipImg = new Image(); 
+shipImg.src = "ship.png";
+
 function drawShip() {
-  if (shipImg.complete && shipImg.naturalWidth !== 0) {
+  if (shipImg.complete && shipImg.naturalWidth > 0) {
     ctx.drawImage(shipImg, gameState.ship.x, gameState.ship.y, gameState.ship.w, gameState.ship.h);
   } else { 
     ctx.fillStyle = gameState.shield ? "cyan" : "lime"; 
