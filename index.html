@@ -1,48 +1,50 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Retro shot</title>
-  <link rel="stylesheet" href="estilo.css">
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retro Shooter</title>
+    <!-- Fonte clássica de Arcade -->
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Menu principal -->
-  <div id="menu">
-    <h1>🚀 Retro Shooter</h1>
 
-    <!-- Nome do jogador -->
-    <label for="playerName">Nome:</label>
-    <input type="text" id="playerName" placeholder="Digite seu nome">
+    <!-- 🌌 Menu Inicial -->
+    <div id="menu" class="menu-container">
+        <h1 class="game-title">RETRO SHOOTER</h1>
+        
+        <div class="input-group">
+            <input type="text" id="playerName" placeholder="DIGITE SEU NOME" maxlength="15">
+        </div>
 
-    <!-- Botões principais -->
-    <button id="startBtn">START</button>
-    <button id="optionsBtn">OPÇÕES</button>
-    <button id="aboutBtn">SOBRE</button>
+        <div class="button-group">
+            <button id="startBtn" class="arcade-btn">START</button>
+            <button class="arcade-btn secondary" onclick="alert('Funcionalidade em breve!')">OPÇÕES</button>
+            <button class="arcade-btn secondary" onclick="alert('Desenvolvido por RayderLuck')">SOBRE</button>
+        </div>
 
-    <!-- Controle de volume -->
-    <label for="volumeSlider">Volume:</label>
-    <input type="range" id="volumeSlider" min="0" max="100" value="50">
+        <div class="volume-box">
+            <span>VOLUME:</span>
+            <input type="range" id="volumeSlider" min="0" max="100" value="50">
+        </div>
 
-    <!-- Ranking visível no menu -->
-    <div id="rankingMenu" style="margin-top:20px; color:white; font-family:'Press Start 2P';">
-      <h2>🏆 Ranking</h2>
-      <pre id="rankingList"></pre>
+        <div id="ranking" class="ranking-box">
+            <h3>MELHORES JOGADORES</h3>
+            <div id="rankingList">Carregando...</div>
+        </div>
     </div>
-  </div>
 
-  <!-- Canvas do jogo -->
-  <canvas id="gameCanvas" width="800" height="600" style="display:none;" tabindex="0"></canvas>
+    <!-- 🎮 Tela do Jogo -->
+    <canvas id="gameCanvas" width="800" height="500" style="display: none;"></canvas>
 
-  <!-- Tela de Game Over -->
-  <div id="gameOver" style="display:none; text-align:center; color:white; font-family:'Press Start 2P';">
-    <h1>GAME OVER!</h1>
-    <p id="finalScore"></p>
-    <pre id="ranking"></pre>
-    <button onclick="restartGame()">Reiniciar</button>
-  </div>
+    <!-- 💥 Tela de Game Over -->
+    <div id="gameOver" class="menu-container" style="display: none;">
+        <h1 class="game-title glitch">FIM DE JOGO</h1>
+        <p id="finalScore" class="score-text">Pontos: 0</p>
+        <button class="arcade-btn" onclick="restartGame()">JOGAR NOVAMENTE</button>
+    </div>
 
-  <!-- Script principal -->
-  <script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
