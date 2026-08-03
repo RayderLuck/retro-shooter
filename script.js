@@ -118,7 +118,7 @@ function update() {
         gameState.score += 100;
       }
     });
-  }); 
+  }); // <-- Chave que faltava para fechar o foreach das balas!
 
   // Inimigos
   gameState.enemies.forEach((e, i) => { 
