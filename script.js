@@ -40,7 +40,7 @@ function drawBackground() {
 }
 
 // 🚀 Nave
-const shipImg = new Image(); shipImg.src = "navio.png";
+const shipImg = new Image(); shipImg.src = "ship.png";
 function drawShip() {
   if (shipImg.complete && shipImg.naturalWidth !== 0) {
     ctx.drawImage(shipImg, gameState.ship.x, gameState.ship.y, gameState.ship.w, gameState.ship.h);
@@ -118,7 +118,7 @@ function update() {
         gameState.score += 100;
       }
     });
-  }); // <-- Chave que faltava para fechar o foreach das balas!
+  }); 
 
   // Inimigos
   gameState.enemies.forEach((e, i) => { 
@@ -158,9 +158,9 @@ function update() {
 function drawHUD() {
   ctx.fillStyle = "white"; 
   ctx.font = "16px 'Press Start 2P'";
-  ctx.fillText(`Score: ${gameState.score}`, 20, 30);
-  ctx.fillText(`Lives: ${gameState.lives}`, 20, 60);
-  ctx.fillText(`Weapon: ${gameState.weaponLevel}`, 20, 90);
+  ctx.fillText(`Pontos: ${gameState.score}`, 20, 30);
+  ctx.fillText(`Vidas: ${gameState.lives}`, 20, 60);
+  ctx.fillText(`Arma: ${gameState.weaponLevel}`, 20, 90);
 }
 
 // 🏆 Score e Ranking
@@ -168,7 +168,7 @@ function saveScore(){
   let ranking = JSON.parse(localStorage.getItem("ranking"));
   if(!Array.isArray(ranking)) ranking = [];
   let nameField = document.getElementById("playerName");
-  let name = nameField && nameField.value.trim() !== "" ? nameField.value.trim() : "Player";
+  let name = nameField && nameField.value.trim() !== "" ? nameField.value.trim() : "Jogador";
   ranking.push({ name: String(name), score: Number(gameState.score) });
   ranking.sort((a,b)=>b.score-a.score);
   ranking = ranking.slice(0,5);
@@ -181,7 +181,7 @@ function updateRankingMenu(){
   if(!Array.isArray(ranking)) ranking = [];
   let rankingList = document.getElementById("rankingList");
   if (rankingList) {
-    rankingList.innerText = ranking.length ? ranking.map((e,i)=>`${i+1}º - ${e.name}: ${e.score}`).join("\n") : "Nenhum score salvo ainda";
+    rankingList.innerText = ranking.length ? ranking.map((e,i)=>`${i+1}º - ${e.name}: ${e.score}`).join("\n") : "Nenhum placar salvo ainda";
   }
 }
 
@@ -192,7 +192,7 @@ function endGame(){
   stopAutoShoot(); 
   saveScore();
   
-  if (finalScore) finalScore.innerText = "Score: " + gameState.score;
+  if (finalScore) finalScore.innerText = "Pontos: " + gameState.score;
   if (rankingBox) rankingBox.innerText = gameState.ranking.map((e,i)=>`${i+1}º - ${e.name}: ${e.score}`).join("\n");
   
   fade(menu, false); 
