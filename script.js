@@ -1,4 +1,4 @@
-// 🎮 Retro Shooter v5.2 — Mobile Touch & Responsive Canvas
+// 🎮 Retro Shooter v5.3 — Mobile Touch & Responsive Canvas
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
@@ -10,7 +10,7 @@ const finalScore = document.getElementById("finalScore");
 const rankingBox = document.getElementById("ranking");
 
 let gameState = {
-  ship: { x: 100, y: 250, w: 50, h: 25, speed: 5 }, // Reduzido um pouco para mobile
+  ship: { x: 100, y: 250, w: 60, h: 30, speed: 5 },
   bullets: [], enemies: [], powerUps: [], stars: [], explosions: [],
   running: false, score: 0, lives: 3,
   weaponLevel: 1, shield: false, boost: false,
@@ -28,7 +28,6 @@ function resizeCanvas() {
   const maxWidth = window.innerWidth * 0.95;
   const maxHeight = window.innerHeight * 0.85;
   
-  // Mantém a proporção padrão (800x500)
   let w = maxWidth;
   let h = w * (500 / 800);
   
@@ -280,30 +279,21 @@ document.addEventListener("mousemove", e => {
   gameState.ship.y = (e.clientY - rect.top) * (canvas.height / rect.height) - gameState.ship.h/2;
 });
 
-// 📱 Controles por Touch (Celular)
-canvas.addEventListener("touchmove", e => {
+// 📱 Controles por Touch (Arrastar a nave na tela)
+function handleTouch(e) {
   if (!gameState.running) return;
-  e.preventDefault(); // Evita a rolagem da página ao tocar no canvas
+  e.preventDefault(); 
   const rect = canvas.getBoundingClientRect();
-  const touch = e.touches[0];
+  const touch = e.touches[0]; 
   const scaleX = canvas.width / rect.width;
   const scaleY = canvas.height / rect.height;
   
   gameState.ship.x = (touch.clientX - rect.left) * scaleX - gameState.ship.w/2;
   gameState.ship.y = (touch.clientY - rect.top) * scaleY - gameState.ship.h/2;
-}, { passive: false });
+}
 
-canvas.addEventListener("touchstart", e => {
-  if (!gameState.running) return;
-  e.preventDefault();
-  const rect = canvas.getBoundingClientRect();
-  const touch = e.touches[0];
-  const scaleX = canvas.width / rect.width;
-  const scaleY = canvas.height / rect.height;
-  
-  gameState.ship.x = (touch.clientX - rect.left) * scaleX - gameState.ship.w/2;
-  gameState.ship.y = (touch.clientY - rect.top) * scaleY - gameState.ship.h/2;
-}, { passive: false });
+canvas.addEventListener("touchstart", handleTouch, { passive: false });
+canvas.addEventListener("touchmove", handleTouch, { passive: false });
 
 // ⏸️ Pausa com tecla P
 document.addEventListener("keydown", e => { 
