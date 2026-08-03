@@ -1,111 +1,161 @@
-/* Fonte retrô e reset */
-body {
-  background: radial-gradient(circle at center, #000010 0%, #000000 100%);
-  color: white;
-  font-family: 'Press Start 2P', monospace;
-  text-align: center;
+/* 🌌 Estilos Gerais e Fundo Espacial */
+* {
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
+}
+
+body {
+  background-color: #05050f;
+  background-image: 
+    radial-gradient(white 1px, transparent 0),
+    radial-gradient(rgba(255,255,255,0.5) 1px, transparent 0);
+  background-size: 50px 50px;
+  background-position: 0 0, 25px 25px;
+  font-family: 'Press Start 2P', monospace;
+  color: #fff;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   overflow: hidden;
 }
 
-/* Menu principal */
-#menu {
-  margin-top: 50px;
-  animation: fadeIn 1.5s ease-in-out;
+/* 🖥️ Container Centralizado e Responsivo */
+.menu-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: rgba(10, 10, 30, 0.85);
+  border: 4px solid #00ffff;
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.5), inset 0 0 15px rgba(0, 255, 255, 0.2);
+  padding: 30px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 600px;
 }
 
-h1 {
-  color: cyan;
-  text-shadow: 0 0 10px cyan, 0 0 20px blue;
-  animation: pulse 2s infinite;
+/* 🚀 Título com Estilo Arcade (Maiúsculas) */
+.game-title {
+  font-size: clamp(20px, 4vw, 36px);
+  color: #ff00ff;
+  text-shadow: 3px 3px 0px #00ffff, -3px -3px 0px #ffff00;
+  margin-bottom: 25px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
 }
 
-/* Botões */
-button {
+/* ⌨️ Campo de Nome */
+.input-group {
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.input-group input {
+  width: 80%;
+  max-width: 350px;
+  padding: 12px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 12px;
+  text-align: center;
+  background: #000;
+  border: 2px solid #ffff00;
+  color: #00ff00;
+  border-radius: 6px;
+  outline: none;
+  text-transform: uppercase;
+}
+
+.input-group input::placeholder {
+  color: #555;
+}
+
+/* 🕹️ Botões Estilo Arcade */
+.button-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.arcade-btn {
   font-family: 'Press Start 2P', monospace;
   font-size: 14px;
-  padding: 10px 20px;
-  margin: 10px;
-  border: 2px solid white;
-  background: black;
-  color: white;
+  padding: 14px 28px;
+  background: #ff0055;
+  color: #fff;
+  border: 3px solid #fff;
+  border-radius: 6px;
   cursor: pointer;
-  transition: all 0.3s ease;
-}
-button:hover {
-  background: white;
-  color: black;
-  box-shadow: 0 0 15px white;
-  transform: scale(1.1);
+  box-shadow: 0 4px 0 #990033;
+  transition: all 0.1s ease;
+  text-transform: uppercase;
+  width: 80%;
+  max-width: 300px;
 }
 
-/* Canvas */
-#gameCanvas {
-  display: block;
-  margin: 20px auto;
-  border: 2px solid white;
-  box-shadow: 0 0 20px cyan;
-  transition: opacity 1s ease-in-out;
+.arcade-btn:hover {
+  background: #ff3377;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #990033;
 }
 
-/* Tela de Game Over */
-#gameOver {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(0,0,0,0.85);
-  border: 3px solid red;
-  padding: 30px;
-  width: 400px;
-  box-shadow: 0 0 25px red;
-  opacity: 0;
-  transition: opacity 1s ease-in-out;
+.arcade-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #990033;
 }
-#gameOver h1 {
-  color: red;
-  text-shadow: 0 0 15px red, 0 0 30px darkred;
+
+.arcade-btn.secondary {
+  background: #0088ff;
+  box-shadow: 0 4px 0 #004499;
+}
+
+.arcade-btn.secondary:hover {
+  background: #3399ff;
+  box-shadow: 0 6px 0 #004499;
+}
+
+/* 🔊 Volume */
+.volume-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 10px;
   margin-bottom: 20px;
-  animation: shake 1.5s infinite;
-}
-#gameOver p, #gameOver pre {
-  margin: 10px 0;
-  white-space: pre-line;
-}
-#gameOver button {
-  margin-top: 20px;
-  border: 2px solid red;
-  color: red;
-}
-#gameOver button:hover {
-  background: red;
-  color: black;
-  box-shadow: 0 0 15px red;
-  transform: scale(1.1);
 }
 
-/* Ranking no menu */
-#rankingMenu {
-  margin-top: 20px;
-  color: white;
-  text-shadow: 0 0 5px white;
+.volume-box input[type="range"] {
+  cursor: pointer;
 }
 
-/* Animações */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+/* 🏆 Ranking */
+.ranking-box {
+  font-size: 10px;
+  border-top: 2px dashed #444;
+  padding-top: 15px;
+  width: 100%;
 }
-@keyframes pulse {
-  0% { text-shadow: 0 0 10px cyan, 0 0 20px blue; }
-  50% { text-shadow: 0 0 20px white, 0 0 40px cyan; }
-  100% { text-shadow: 0 0 10px cyan, 0 0 20px blue; }
+
+.ranking-box h3 {
+  color: #ffff00;
+  margin-bottom: 8px;
+  font-size: 11px;
 }
-@keyframes shake {
-  0% { transform: translate(-50%, -50%) rotate(0deg); }
-  25% { transform: translate(-50%, -50%) rotate(1deg); }
-  50% { transform: translate(-50%, -50%) rotate(0deg); }
-  75% { transform: translate(-50%, -50%) rotate(-1deg); }
-  100% { transform: translate(-50%, -50%) rotate(0deg); }
+
+#rankingList {
+  line-height: 1.6;
+  color: #ccc;
+}
+
+/* 🎮 Canvas responsivo do Jogo */
+#gameCanvas {
+  max-width: 100%;
+  height: auto;
+  border: 4px solid #00ffff;
+  box-shadow: 0 0 25px rgba(0, 255, 255, 0.4);
+  background: #000;
 }
