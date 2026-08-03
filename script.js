@@ -1,4 +1,4 @@
-// 🎮 Retro Shooter v5.1 — Exploder Enemies + Animated Explosion
+// 🎮 Retro Shooter v5.2 — Mobile Touch & Responsive Canvas
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
@@ -10,7 +10,7 @@ const finalScore = document.getElementById("finalScore");
 const rankingBox = document.getElementById("ranking");
 
 let gameState = {
-  ship: { x: 100, y: 250, w: 80, h: 40, speed: 5 },
+  ship: { x: 100, y: 250, w: 50, h: 25, speed: 5 }, // Reduzido um pouco para mobile
   bullets: [], enemies: [], powerUps: [], stars: [], explosions: [],
   running: false, score: 0, lives: 3,
   weaponLevel: 1, shield: false, boost: false,
@@ -22,6 +22,30 @@ const sounds = { fase1: new Audio("fase1.wav"), shoot: new Audio("laser1.wav"), 
 Object.values(sounds).forEach(m => { m.loop = true; m.volume = 0.5; });
 sounds.shoot.loop = false; sounds.shoot.volume = 0.7;
 sounds.boom.loop = false; sounds.boom.volume = 0.8;
+
+// 📱 Ajustar o tamanho do Canvas para qualquer tela/rotação
+function resizeCanvas() {
+  const maxWidth = window.innerWidth * 0.95;
+  const maxHeight = window.innerHeight * 0.85;
+  
+  // Mantém a proporção padrão (800x500)
+  let w = maxWidth;
+  let h = w * (500 / 800);
+  
+  if (h > maxHeight) {
+    h = maxHeight;
+    w = h * (800 / 500);
+  }
+  
+  canvas.width = 800;
+  canvas.height = 500;
+  canvas.style.width = `${w}px`;
+  canvas.style.height = `${h}px`;
+}
+
+window.addEventListener('resize', resizeCanvas);
+window.addEventListener('orientationchange', resizeCanvas);
+resizeCanvas();
 
 // 🌌 Fundo estrelado
 function initStars() {
@@ -65,7 +89,7 @@ function shoot() {
 function spawnEnemy() {
   gameState.enemies.push({
     x: canvas.width,
-    y: Math.random() * (canvas.height - 20),
+    y: Math.random() * (canvas.height - 30),
     w: 30, h: 30, speed: 3,
     type: Math.random() < 0.3 ? "exploder" : "normal"
   });
@@ -247,12 +271,39 @@ if (volumeSlider) {
   });
 }
 
-// 🖱️ Nave segue o mouse
+// 🖱️ Controles por Mouse
 document.addEventListener("mousemove", e => {
+  if (!gameState.running) return;
   const rect = canvas.getBoundingClientRect();
-  gameState.ship.x = e.clientX - rect.left - gameState.ship.w/2;
-  gameState.ship.y = e.clientY - rect.top - gameState.ship.h/2;
+  const scaleX = canvas.width / rect.width;
+  gameState.ship.x = (e.clientX - rect.left) * scaleX - gameState.ship.w/2;
+  gameState.ship.y = (e.clientY - rect.top) * (canvas.height / rect.height) - gameState.ship.h/2;
 });
+
+// 📱 Controles por Touch (Celular)
+canvas.addEventListener("touchmove", e => {
+  if (!gameState.running) return;
+  e.preventDefault(); // Evita a rolagem da página ao tocar no canvas
+  const rect = canvas.getBoundingClientRect();
+  const touch = e.touches[0];
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  
+  gameState.ship.x = (touch.clientX - rect.left) * scaleX - gameState.ship.w/2;
+  gameState.ship.y = (touch.clientY - rect.top) * scaleY - gameState.ship.h/2;
+}, { passive: false });
+
+canvas.addEventListener("touchstart", e => {
+  if (!gameState.running) return;
+  e.preventDefault();
+  const rect = canvas.getBoundingClientRect();
+  const touch = e.touches[0];
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  
+  gameState.ship.x = (touch.clientX - rect.left) * scaleX - gameState.ship.w/2;
+  gameState.ship.y = (touch.clientY - rect.top) * scaleY - gameState.ship.h/2;
+}, { passive: false });
 
 // ⏸️ Pausa com tecla P
 document.addEventListener("keydown", e => { 
