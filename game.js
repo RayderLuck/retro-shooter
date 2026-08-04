@@ -31,15 +31,8 @@ export class Game {
         // 🔊 Elementos de Áudio
         this.bgMusic = document.getElementById('bgMusic');
         this.laserSound = document.getElementById('laserSound');
-        
-        // 🕹️ Estado do Joystick Virtual
-        this.joystickActive = false;
-        this.joystickVector = { x: 0, y: 0 };
-        this.joystickCenter = { x: 0, y: 0 };
-        this.maxJoystickDist = 40;
 
         this.setupListeners();
-        this.setupVirtualJoystick();
     }
 
     setVolume(vol) {
@@ -59,7 +52,7 @@ export class Game {
         window.addEventListener('keydown', (e) => { this.keys[e.key] = true; });
         window.addEventListener('keyup', (e) => { this.keys[e.key] = false; });
 
-        const updateMousePosition = (clientX, clientY) => {
+        const updatePosition = (clientX, clientY) => {
             const rect = this.canvas.getBoundingClientRect();
             const scaleX = this.canvas.width / rect.width;
             const scaleY = this.canvas.height / rect.height;
@@ -68,12 +61,9 @@ export class Game {
             this.mouseY = (clientY - rect.top) * scaleY;
         };
 
+        // Eventos de Mouse (PC)
         this.canvas.addEventListener('mousemove', (e) => {
-            updateMousePosition(e.clientX, e.clientY);
-        });
-
-        this.canvas.addEventListener('mouseenter', (e) => {
-            updateMousePosition(e.clientX, e.clientY);
+            updatePosition(e.clientX, e.clientY);
         });
 
         this.canvas.addEventListener('mouseleave', () => {
@@ -81,76 +71,25 @@ export class Game {
             this.mouseY = undefined;
         });
 
-        // 📱 Suporte a toque direto/deslizar na tela (se o joystick não estiver ativo)
-        this.canvas.addEventListener('touchmove', (e) => {
-            if (e.touches.length > 0 && !this.joystickActive) {
-                updateMousePosition(e.touches[0].clientX, e.touches[0].clientY);
+        // 📱 Eventos de Toque (Celular) - Segue o dedo arrastando suavemente
+        this.canvas.addEventListener('touchstart', (e) => {
+            if (e.touches.length > 0) {
+                updatePosition(e.touches[0].clientX, e.touches[0].clientY);
             }
             e.preventDefault();
         }, { passive: false });
 
-        this.canvas.addEventListener('touchstart', (e) => {
-            if (e.touches.length > 0 && !this.joystickActive) {
-                updateMousePosition(e.touches[0].clientX, e.touches[0].clientY);
+        this.canvas.addEventListener('touchmove', (e) => {
+            if (e.touches.length > 0) {
+                updatePosition(e.touches[0].clientX, e.touches[0].clientY);
             }
-        }, { passive: true });
+            e.preventDefault();
+        }, { passive: false });
 
         this.canvas.addEventListener('touchend', () => {
-            if (!this.joystickActive) {
-                this.mouseX = undefined;
-                this.mouseY = undefined;
-            }
+            this.mouseX = undefined;
+            this.mouseY = undefined;
         });
-    }
-
-    setupVirtualJoystick() {
-        const base = document.getElementById('virtualJoystick');
-        const stick = document.getElementById('joystickStick');
-        if (!base || !stick) return;
-
-        const handleTouchStart = (e) => {
-            e.preventDefault();
-            const touch = e.touches[0];
-            const rect = base.getBoundingClientRect();
-            this.joystickCenter = {
-                x: rect.left + rect.width / 2,
-                y: rect.top + rect.height / 2
-            };
-            this.joystickActive = true;
-            handleTouchMove(e);
-        };
-
-        const handleTouchMove = (e) => {
-            if (!this.joystickActive) return;
-            e.preventDefault();
-            const touch = e.touches[0];
-
-            let dx = touch.clientX - this.joystickCenter.x;
-            let dy = touch.clientY - this.joystickCenter.y;
-            const distance = Math.hypot(dx, dy);
-
-            if (distance > this.maxJoystickDist) {
-                dx = (dx / distance) * this.maxJoystickDist;
-                dy = (dy / distance) * this.maxJoystickDist;
-            }
-
-            stick.style.transform = `translate(${dx}px, ${dy}px)`;
-
-            this.joystickVector.x = dx / this.maxJoystickDist;
-            this.joystickVector.y = dy / this.maxJoystickDist;
-        };
-
-        const handleTouchEnd = (e) => {
-            if (!this.joystickActive) return;
-            e.preventDefault();
-            this.joystickActive = false;
-            this.joystickVector = { x: 0, y: 0 };
-            stick.style.transform = `translate(0px, 0px)`;
-        };
-
-        base.addEventListener('touchstart', handleTouchStart, { passive: false });
-        window.addEventListener('touchmove', handleTouchMove, { passive: false });
-        window.addEventListener('touchend', handleTouchEnd, { passive: false });
     }
 
     shoot() {
@@ -181,19 +120,8 @@ export class Game {
     update() {
         if (this.isGameOver) return;
 
-        // Aplica o movimento do joystick virtual caso esteja ativo
-        if (this.joystickActive) {
-            this.player.x += this.joystickVector.x * this.player.speed;
-            this.player.y += this.joystickVector.y * this.player.speed;
-            
-            // Limites do canvas
-            if (this.player.x < 0) this.player.x = 0;
-            if (this.player.x > this.canvas.width - this.player.width) this.player.x = this.canvas.width - this.player.width;
-            if (this.player.y < 0) this.player.y = 0;
-            if (this.player.y > this.canvas.height - this.player.height) this.player.y = this.canvas.height - this.player.height;
-        } else {
-            this.player.update(this.keys, this.mouseX, this.mouseY, this.canvas.width, this.canvas.height);
-        }
+        // Move a nave seguindo diretamente o toque/mouse
+        this.player.update(this.keys, this.mouseX, this.mouseY, this.canvas.width, this.canvas.height);
 
         this.shootTimer++;
         if (this.shootTimer >= 15) {
@@ -246,7 +174,6 @@ export class Game {
                         this.enemies.splice(eIndex, 1);
                         this.score += 100;
 
-                        // Chance de dropar Power-up ou Moeda
                         if (Math.random() < 0.5) {
                             const rand = Math.random();
                             let dropType = 'moeda';
@@ -320,7 +247,6 @@ export class Game {
     }
 
     start() {
-        // Reseta estados para garantir funcionamento limpo ao iniciar/reiniciar
         this.isGameOver = false;
         this.lives = 3;
         this.score = 0;
@@ -329,18 +255,14 @@ export class Game {
         this.bullets = [];
         this.powerUps = [];
 
-        // Garante que o canvas esteja visível e esconde telas de menu/gameover caso necessário
         if (this.canvas) this.canvas.style.display = 'block';
         const gameOverScreen = document.getElementById('gameOver');
         if (gameOverScreen) gameOverScreen.style.display = 'none';
-        const menuScreen = document.getElementById('menu'); // Caso tenha menu inicial
-        if (menuScreen) menuScreen.style.display = 'none';
 
         if (this.bgMusic) {
             this.bgMusic.currentTime = 0;
             this.bgMusic.play().catch(() => {});
         }
-        
         this.loop();
     }
 }
