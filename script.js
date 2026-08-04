@@ -88,7 +88,7 @@ function spawnEnemy() {
     x: canvas.width,
     y: Math.random() * (canvas.height - 30),
     w: 30, h: 30, speed: 3,
-    color: Math.random() < 0.5 ? "red" : "orange" // Inimigos vermelhos ou laranjas
+    color: Math.random() < 0.5 ? "red" : "orange"
   });
 }
 
@@ -96,7 +96,6 @@ function spawnEnemy() {
 function spawnPowerUp() {
   if (!gameState.running) return;
   let type = Math.floor(Math.random() * 3);
-  // Cores mais chamativas: Azul (Arma), Verde (Escudo), Dourado/Amarelo (Boost)
   let colors = ["#00ffff", "#00ff00", "#ffd700"]; 
   gameState.powerUps.push({
     x: canvas.width,
@@ -140,7 +139,7 @@ function update() {
     
     gameState.enemies.forEach((e, j) => { 
       if (isColliding(b, e)) {
-        explode(e.x, e.y); // Todos explodem ao levar tiro!
+        explode(e.x, e.y);
         gameState.enemies.splice(j, 1); 
         gameState.bullets.splice(i, 1); 
         gameState.score += 100;
@@ -163,13 +162,12 @@ function update() {
     if (e.x + e.w < 0) gameState.enemies.splice(i, 1); 
   });
 
-  // PowerUps (Desenhados com destaque)
+  // PowerUps
   gameState.powerUps.forEach((p, i) => { 
     p.x -= p.speed; 
     ctx.fillStyle = p.color; 
     ctx.fillRect(p.x, p.y, p.w, p.h);
     
-    // Borda brilhante no item para facilitar a visualização
     ctx.strokeStyle = "white";
     ctx.lineWidth = 2;
     ctx.strokeRect(p.x, p.y, p.w, p.h);
@@ -233,6 +231,10 @@ function endGame(){
   fade(menu, false); 
   fade(canvas, false); 
   fade(gameOverScreen, true);
+  
+  // Esconde o joystick se houver
+  const joystick = document.getElementById("virtualJoystick");
+  if (joystick) joystick.style.display = "none";
 }
 
 function restartGame(){ 
@@ -241,37 +243,45 @@ function restartGame(){
   updateRankingMenu(); 
 }
 
-// 🚀 Iniciar jogo
-if (startBtn) {
-  startBtn.addEventListener("click", () => {
-    let nameField = document.getElementById("playerName");
-    if(!nameField || !nameField.value.trim()){ 
-      alert("Digite seu nome antes de começar!"); 
-      return; 
-    }
-    
-    gameState.score = 0; 
-    gameState.lives = 3; 
-    gameState.weaponLevel = 1;
-    gameState.enemies = [];
-    gameState.bullets = [];
-    gameState.powerUps = [];
-    gameState.explosions = [];
+// 🚀 Iniciar jogo (Corrigido para aceitar Clique e Toque no Celular)
+function handleStartGame(e) {
+  if (e) e.preventDefault();
+  let nameField = document.getElementById("playerName");
+  if(!nameField || !nameField.value.trim()){ 
+    alert("Digite seu nome antes de começar!"); 
+    return; 
+  }
+  
+  gameState.score = 0; 
+  gameState.lives = 3; 
+  gameState.weaponLevel = 1;
+  gameState.enemies = [];
+  gameState.bullets = [];
+  gameState.powerUps = [];
+  gameState.explosions = [];
 
-    fade(menu, false); 
-    fade(canvas, true);
-    canvas.focus(); 
-    
-    gameState.running = true; 
-    initStars(); 
-    playMusic();
-    
-    enemyInterval = setInterval(spawnEnemy, 2000); 
-    powerUpInterval = setInterval(spawnPowerUp, 10000);
-    startAutoShoot(); 
-    
-    loop();
-  });
+  fade(menu, false); 
+  fade(canvas, true);
+  canvas.focus(); 
+  
+  // Mostra o joystick no celular/tela
+  const joystick = document.getElementById("virtualJoystick");
+  if (joystick) joystick.style.display = "flex";
+
+  gameState.running = true; 
+  initStars(); 
+  playMusic();
+  
+  enemyInterval = setInterval(spawnEnemy, 2000); 
+  powerUpInterval = setInterval(spawnPowerUp, 10000);
+  startAutoShoot(); 
+  
+  loop();
+}
+
+if (startBtn) {
+  startBtn.addEventListener("click", handleStartGame);
+  startBtn.addEventListener("touchstart", handleStartGame, { passive: false });
 }
 
 updateRankingMenu();
