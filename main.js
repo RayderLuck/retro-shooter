@@ -1,11 +1,23 @@
 import { Game } from './game.js';
 
 window.addEventListener('DOMContentLoaded', () => {
-    const canvas = document.getElementById('gameCanvas'); // Certifique-se de que o ID do seu canvas no index.html é gameCanvas
-    if (canvas) {
-        const game = new Game(canvas);
-        game.start();
-    } else {
-        console.error("Canvas não encontrado no HTML!");
+    const startBtn = document.getElementById('startBtn');
+    const menu = document.getElementById('menu');
+    const canvas = document.getElementById('gameCanvas');
+
+    if (startBtn) {
+        startBtn.addEventListener('click', () => {
+            // Esconde o menu inicial
+            if (menu) menu.style.display = 'none';
+            
+            // Mostra o canvas do jogo
+            if (canvas) {
+                canvas.style.display = 'block';
+                
+                // Inicia o loop principal do jogo
+                const game = new Game(canvas);
+                game.start();
+            }
+        });
     }
 });
