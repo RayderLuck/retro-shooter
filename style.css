@@ -234,7 +234,7 @@ body::after {
 /* 🕹️ Joystick Virtual Centralizado Abaixo da Tela do Jogo */
 .joystick-base {
   position: relative;
-  margin-top: 15px;
+  margin-top: 30px;
   width: 100px;
   height: 100px;
   background: rgba(255, 255, 255, 0.08);
