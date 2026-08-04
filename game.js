@@ -11,6 +11,10 @@ export class Game {
         this.player = new Player(canvas.width / 2 - 20, canvas.height - 70);
         this.ui = new UI();
         
+        // Carrega o sprite da nave original
+        this.shipImage = new Image();
+        this.shipImage.src = 'ship.png';
+
         this.enemies = [];
         this.powerUps = [];
         this.bullets = [];
@@ -26,7 +30,6 @@ export class Game {
     setupListeners() {
         window.addEventListener('keydown', (e) => {
             this.keys[e.key] = true;
-            // Disparo com a barra de espaço
             if (e.key === ' ' || e.key === 'Spacebar') {
                 this.shoot();
             }
@@ -35,7 +38,6 @@ export class Game {
     }
 
     shoot() {
-        // Cria tiros simples a partir da posição da nave
         this.bullets.push({
             x: this.player.x + this.player.width / 2 - 3,
             y: this.player.y,
@@ -53,10 +55,8 @@ export class Game {
     }
 
     update() {
-        // Atualiza jogador
         this.player.update(this.keys, this.canvas.width, this.canvas.height);
 
-        // Atualiza tiros do jogador
         this.bullets.forEach((bullet, bIndex) => {
             bullet.y -= bullet.speed;
             if (bullet.y < 0) {
@@ -64,29 +64,24 @@ export class Game {
             }
         });
 
-        // Gera e atualiza inimigos
         this.spawnEnemy();
         this.enemies.forEach((enemy, eIndex) => {
             enemy.update(this.canvas.width);
             
-            // Remove inimigos que passam da tela
             if (enemy.y > this.canvas.height) {
                 this.enemies.splice(eIndex, 1);
                 return;
             }
 
-            // Verifica colisão do tiro com o inimigo
             this.bullets.forEach((bullet, bIndex) => {
                 if (enemy.checkCollision(bullet)) {
                     enemy.health -= 1;
                     this.bullets.splice(bIndex, 1);
 
-                    // Se o inimigo morreu
                     if (enemy.health <= 0) {
                         this.enemies.splice(eIndex, 1);
                         this.score += 100;
 
-                        // Chance de dropar moeda ou power-up
                         if (Math.random() < 0.4) {
                             const dropType = Math.random() < 0.7 ? 'moeda' : 'explosivo';
                             this.powerUps.push(new PowerUp(enemy.x, enemy.y, dropType));
@@ -96,11 +91,9 @@ export class Game {
             });
         });
 
-        // Atualiza power-ups / moedas
         this.powerUps.forEach((item, index) => {
             item.update();
             
-            // Coleta o item se encostar na nave
             if (item.checkCollision(this.player)) {
                 if (item.type === 'moeda') {
                     this.coins += 1;
@@ -113,18 +106,15 @@ export class Game {
             }
         });
 
-        // Atualiza UI
         this.ui.update(this.coins, this.score, this.lives);
     }
 
     draw() {
-        // Limpa a tela
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-        // Desenha elementos
-        this.player.draw(this.ctx, null);
+        // Passa a imagem correta da nave para o método draw
+        this.player.draw(this.ctx, this.shipImage);
 
-        // Desenha tiros
         this.ctx.fillStyle = '#00ffff';
         this.bullets.forEach(bullet => {
             this.ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
