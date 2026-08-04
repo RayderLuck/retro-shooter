@@ -206,23 +206,44 @@ export class Game {
         });
 
         this.spawnEnemy();
+
         this.enemies.forEach((enemy, eIndex) => {
             enemy.update(this.canvas.height);
             
+            // Remove inimigo se passar da tela
             if (enemy.x + enemy.width < 0) {
                 this.enemies.splice(eIndex, 1);
                 return;
             }
 
+            // 💥 Colisão do Inimigo com a Nave do Jogador (Perde Vida)
+            if (
+                this.player.x < enemy.x + enemy.width &&
+                this.player.x + this.player.width > enemy.x &&
+                this.player.y < enemy.y + enemy.height &&
+                this.player.y + this.player.height > enemy.y
+            ) {
+                this.lives -= 1;
+                this.enemies.splice(eIndex, 1); // Destrói o inimigo ao bater na nave
+
+                if (this.lives <= 0) {
+                    this.triggerGameOver();
+                }
+                return;
+            }
+
+            // Colisão dos Tiros com os Inimigos
             this.bullets.forEach((bullet, bIndex) => {
                 if (enemy.checkCollision(bullet)) {
                     enemy.health -= 1;
                     this.bullets.splice(bIndex, 1);
 
+                    // Se a vida do inimigo acabou (Explosão / Destruição)
                     if (enemy.health <= 0) {
                         this.enemies.splice(eIndex, 1);
                         this.score += 100;
 
+                        // Chance de dropar Power-up ou Moeda
                         if (Math.random() < 0.5) {
                             const rand = Math.random();
                             let dropType = 'moeda';
@@ -260,6 +281,17 @@ export class Game {
         this.ui.update(this.coins, this.score, this.lives);
     }
 
+    triggerGameOver() {
+        if (this.bgMusic) this.bgMusic.pause();
+        const gameOverScreen = document.getElementById('gameOver');
+        const finalScoreText = document.getElementById('finalScore');
+        const canvas = document.getElementById('gameCanvas');
+
+        if (gameOverScreen) gameOverScreen.style.display = 'flex';
+        if (finalScoreText) finalScoreText.innerText = `Pontos: ${this.score}`;
+        if (canvas) canvas.style.display = 'none';
+    }
+
     draw() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
@@ -276,13 +308,16 @@ export class Game {
     }
 
     loop() {
-        this.update();
-        this.draw();
-        requestAnimationFrame(() => this.loop());
+        if (this.lives > 0) {
+            this.update();
+            this.draw();
+            requestAnimationFrame(() => this.loop());
+        }
     }
 
     start() {
         if (this.bgMusic) {
+            this.bgMusic.currentTime = 0;
             this.bgMusic.play().catch(() => {});
         }
         this.loop();
