@@ -235,7 +235,7 @@ function restartGame(){
   updateRankingMenu(); 
 }
 
-// 🚀 Iniciar jogo
+// 🚀 Iniciar jogo (Vinculado ao botão START)
 if (startBtn) {
   startBtn.addEventListener("click", () => {
     let nameField = document.getElementById("playerName");
