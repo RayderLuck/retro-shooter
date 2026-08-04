@@ -10,23 +10,24 @@ export class Enemy {
             this.width = 80;
             this.height = 60;
             this.health = 25;
-            this.speed = 1;
+            this.speed = 2;
         } else {
             this.health = 2;
-            this.speed = 2;
+            this.speed = 3;
         }
         
-        this.direction = 1; // Para movimento lateral se necessário
+        this.direction = 1; // Para oscilação vertical se necessário
     }
 
-    // Atualiza a movimentação do inimigo na tela
-    update(canvasWidth) {
-        this.y += this.speed;
+    // Atualiza a movimentação do inimigo da direita para a esquerda
+    update(canvasHeight) {
+        // Movimento principal: da direita para a esquerda
+        this.x -= this.speed;
         
-        // Movimento lateral básico para dar dinamismo
+        // Se for chefe, adiciona um leve movimento oscilatório vertical para dar dinamismo
         if (this.type === 'chefe') {
-            this.x += this.direction * 1.5;
-            if (this.x <= 0 || this.x + this.width >= canvasWidth) {
+            this.y += this.direction * 1;
+            if (this.y <= 20 || this.y + this.height >= canvasHeight - 20) {
                 this.direction *= -1;
             }
         }
