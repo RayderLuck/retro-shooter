@@ -34,7 +34,7 @@ export class Game {
         window.addEventListener('keydown', (e) => { this.keys[e.key] = true; });
         window.addEventListener('keyup', (e) => { this.keys[e.key] = false; });
 
-        // Captura correta do mouse relativa ao canvas redimensionado (PC e Touch)
+        // Função auxiliar para atualizar as coordenadas relativas do mouse/toque no canvas
         const updateMousePosition = (clientX, clientY) => {
             const rect = this.canvas.getBoundingClientRect();
             const scaleX = this.canvas.width / rect.width;
@@ -48,12 +48,23 @@ export class Game {
             updateMousePosition(e.clientX, e.clientY);
         });
 
+        // Garante que a posição seja capturada assim que o mouse entra no canvas
+        this.canvas.addEventListener('mouseenter', (e) => {
+            updateMousePosition(e.clientX, e.clientY);
+        });
+
         this.canvas.addEventListener('touchmove', (e) => {
             if (e.touches.length > 0) {
                 updateMousePosition(e.touches[0].clientX, e.touches[0].clientY);
             }
             e.preventDefault();
         }, { passive: false });
+
+        this.canvas.addEventListener('touchstart', (e) => {
+            if (e.touches.length > 0) {
+                updateMousePosition(e.touches[0].clientX, e.touches[0].clientY);
+            }
+        }, { passive: true });
 
         this.canvas.addEventListener('mouseleave', () => {
             this.mouseX = undefined;
@@ -62,7 +73,6 @@ export class Game {
     }
 
     shoot() {
-        // O tiro sai da frente (direita) da nave, indo horizontalmente para a direita
         this.bullets.push({
             x: this.player.x + this.player.width,
             y: this.player.y + this.player.height / 2 - 3,
@@ -80,7 +90,7 @@ export class Game {
     }
 
     update() {
-        // Atualiza a nave seguindo o mouse/toque
+        // Atualiza a nave seguindo o mouse/toque se estiver ativo
         this.player.update(this.keys, this.mouseX, this.mouseY, this.canvas.width, this.canvas.height);
 
         // Disparo automático contínuo
@@ -118,7 +128,6 @@ export class Game {
                         this.enemies.splice(eIndex, 1);
                         this.score += 100;
 
-                        // Dropa moedas ou power-ups na posição do inimigo derrotado
                         if (Math.random() < 0.5) {
                             const dropType = Math.random() < 0.7 ? 'moeda' : 'explosivo';
                             this.powerUps.push(new PowerUp(enemy.x, enemy.y, dropType));
@@ -132,7 +141,6 @@ export class Game {
         this.powerUps.forEach((item, index) => {
             item.update();
             
-            // Coleta o item ao encostar na nave
             if (item.checkCollision(this.player)) {
                 if (item.type === 'moeda') {
                     this.coins += 1;
@@ -140,8 +148,7 @@ export class Game {
                     this.player.shootType = item.type;
                 }
                 this.powerUps.splice(index, 1);
-            } else if (item.x < -50 || item.y > this.canvas.height) { 
-                // Remove se sair da tela (ajustado para o fluxo da esquerda)
+            } else if (item.x < -50 || item.y > this.canvas.height) {
                 this.powerUps.splice(index, 1);
             }
         });
@@ -152,10 +159,8 @@ export class Game {
     draw() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-        // Desenha a nave com o sprite ship.png
         this.player.draw(this.ctx, this.shipImage);
 
-        // Desenha tiros
         this.ctx.fillStyle = '#00ffff';
         this.bullets.forEach(bullet => {
             this.ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
