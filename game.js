@@ -26,6 +26,7 @@ export class Game {
         this.score = 0;
         this.coins = 0;
         this.lives = 3;
+        this.isGameOver = false;
 
         // 🔊 Elementos de Áudio
         this.bgMusic = document.getElementById('bgMusic');
@@ -178,6 +179,8 @@ export class Game {
     }
 
     update() {
+        if (this.isGameOver) return;
+
         // Aplica o movimento do joystick virtual caso esteja ativo
         if (this.joystickActive) {
             this.player.x += this.joystickVector.x * this.player.speed;
@@ -282,6 +285,7 @@ export class Game {
     }
 
     triggerGameOver() {
+        this.isGameOver = true;
         if (this.bgMusic) this.bgMusic.pause();
         const gameOverScreen = document.getElementById('gameOver');
         const finalScoreText = document.getElementById('finalScore');
@@ -308,7 +312,7 @@ export class Game {
     }
 
     loop() {
-        if (this.lives > 0) {
+        if (!this.isGameOver) {
             this.update();
             this.draw();
             requestAnimationFrame(() => this.loop());
@@ -316,6 +320,7 @@ export class Game {
     }
 
     start() {
+        this.isGameOver = false;
         if (this.bgMusic) {
             this.bgMusic.currentTime = 0;
             this.bgMusic.play().catch(() => {});
