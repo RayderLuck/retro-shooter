@@ -19,6 +19,14 @@ export class Game {
         this.bullets = [];
         this.keys = {};
         
+        // 🌌 Fundo estrelado dinâmico (isolado e seguro)
+        this.stars = Array.from({ length: 80 }, () => ({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            size: Math.random() * 2,
+            speed: Math.random() * 1.5 + 0.5
+        }));
+        
         this.mouseX = undefined;
         this.mouseY = undefined;
         this.shootTimer = 0;
@@ -259,8 +267,21 @@ export class Game {
     }
 
     draw() {
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        // 🌌 Renderização do Fundo Estrelado Dinâmico
+        this.ctx.fillStyle = '#050510';
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
+        this.ctx.fillStyle = '#ffffff';
+        this.stars.forEach(star => {
+            this.ctx.fillRect(star.x, star.y, star.size, star.size);
+            star.x -= star.speed;
+            if (star.x < 0) {
+                star.x = this.canvas.width;
+                star.y = Math.random() * this.canvas.height;
+            }
+        });
+
+        // 🚀 Elementos do jogo mantidos intactos
         this.player.draw(this.ctx, this.shipImage);
 
         this.ctx.fillStyle = '#00ffff';
