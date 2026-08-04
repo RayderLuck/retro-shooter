@@ -79,6 +79,27 @@ export class Game {
             this.mouseX = undefined;
             this.mouseY = undefined;
         });
+
+        // 📱 Suporte a toque direto/deslizar na tela (se o joystick não estiver ativo)
+        this.canvas.addEventListener('touchmove', (e) => {
+            if (e.touches.length > 0 && !this.joystickActive) {
+                updateMousePosition(e.touches[0].clientX, e.touches[0].clientY);
+            }
+            e.preventDefault();
+        }, { passive: false });
+
+        this.canvas.addEventListener('touchstart', (e) => {
+            if (e.touches.length > 0 && !this.joystickActive) {
+                updateMousePosition(e.touches[0].clientX, e.touches[0].clientY);
+            }
+        }, { passive: true });
+
+        this.canvas.addEventListener('touchend', () => {
+            if (!this.joystickActive) {
+                this.mouseX = undefined;
+                this.mouseY = undefined;
+            }
+        });
     }
 
     setupVirtualJoystick() {
