@@ -1,4 +1,4 @@
-// 🎮 Retro Shooter v5.3 — Mobile Touch & Responsive Canvas
+// 🎮 Retro Shooter v5.3.1 — Mobile Touch & Responsive Canvas
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
@@ -81,11 +81,12 @@ function shoot() {
   if (gameState.weaponLevel > 1) y = [5, s.h-5];
   if (gameState.weaponLevel > 2) y = [0, s.h/2, s.h];
   y.forEach(pos => gameState.bullets.push({ x: s.x+s.w, y: s.y+pos, w:5, h:2, speed:7 }));
-  sounds.shoot.currentTime = 0; sounds.shoot.play();
+  sounds.shoot.currentTime = 0; sounds.shoot.play().catch(() => {});
 }
 
 // 👾 Inimigos e PowerUps
 function spawnEnemy() {
+  if (!gameState.running) return;
   gameState.enemies.push({
     x: canvas.width,
     y: Math.random() * (canvas.height - 30),
@@ -94,6 +95,7 @@ function spawnEnemy() {
   });
 }
 function spawnPowerUp() {
+  if (!gameState.running) return;
   let type = Math.floor(Math.random()*3), colors=["blue","green","yellow"];
   gameState.powerUps.push({
     x: canvas.width,
@@ -107,7 +109,7 @@ function spawnPowerUp() {
 // 💥 Explosão animada
 function explode(x, y) {
   gameState.explosions.push({ x: x+15, y: y+15, r: 5, maxR: 30, alpha: 1 });
-  sounds.boom.currentTime = 0; sounds.boom.play();
+  sounds.boom.currentTime = 0; sounds.boom.play().catch(() => {});
 }
 function drawExplosions() {
   gameState.explosions.forEach((ex, i) => {
@@ -182,7 +184,7 @@ function update() {
 // 🖥️ HUD
 function drawHUD() {
   ctx.fillStyle = "white"; 
-  ctx.font = "16px 'Press Start 2P'";
+  ctx.font = "16px sans-serif"; // Usando fonte padrão caso a customizada falhe ao carregar
   ctx.fillText(`Pontos: ${gameState.score}`, 20, 30);
   ctx.fillText(`Vidas: ${gameState.lives}`, 20, 60);
   ctx.fillText(`Arma: ${gameState.weaponLevel}`, 20, 90);
@@ -210,11 +212,14 @@ function updateRankingMenu(){
   }
 }
 
+// Temporizadores de Spawn globais para poder limpar depois
+let enemyInterval, powerUpInterval, autoShootInterval;
+
 // 🔚 Game Over
 function endGame(){
   gameState.running = false; 
   stopMusic(); 
-  stopAutoShoot(); 
+  stopIntervals();
   saveScore();
   
   if (finalScore) finalScore.innerText = "Pontos: " + gameState.score;
@@ -223,10 +228,6 @@ function endGame(){
   fade(menu, false); 
   fade(canvas, false); 
   fade(gameOverScreen, true);
-  
-  gameState.score = 0; 
-  gameState.lives = 3; 
-  gameState.weaponLevel = 1;
 }
 
 function restartGame(){ 
@@ -243,15 +244,28 @@ if (startBtn) {
       alert("Digite seu nome antes de começar!"); 
       return; 
     }
+    
+    // Reseta os status do jogo para uma nova partida limpa
+    gameState.score = 0; 
+    gameState.lives = 3; 
+    gameState.weaponLevel = 1;
+    gameState.enemies = [];
+    gameState.bullets = [];
+    gameState.powerUps = [];
+    gameState.explosions = [];
+
     fade(menu, false); 
     fade(canvas, true);
     canvas.focus(); 
+    
     gameState.running = true; 
     initStars(); 
     playMusic();
-    setInterval(spawnEnemy, 2000); 
-    setInterval(spawnPowerUp, 10000);
+    
+    enemyInterval = setInterval(spawnEnemy, 2000); 
+    powerUpInterval = setInterval(spawnPowerUp, 10000);
     startAutoShoot(); 
+    
     loop();
   });
 }
@@ -260,7 +274,7 @@ updateRankingMenu();
 
 // 🎵 Música
 function stopMusic(){ Object.values(sounds).forEach(m=>{m.pause();m.currentTime=0;}); }
-function playMusic(){ stopMusic(); sounds.fase1.play(); }
+function playMusic(){ stopMusic(); sounds.fase1.play().catch(() => {}); }
 
 // 🔊 Volume
 if (volumeSlider) {
@@ -275,8 +289,9 @@ document.addEventListener("mousemove", e => {
   if (!gameState.running) return;
   const rect = canvas.getBoundingClientRect();
   const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
   gameState.ship.x = (e.clientX - rect.left) * scaleX - gameState.ship.w/2;
-  gameState.ship.y = (e.clientY - rect.top) * (canvas.height / rect.height) - gameState.ship.h/2;
+  gameState.ship.y = (e.clientY - rect.top) * scaleY - gameState.ship.h/2;
 });
 
 // 📱 Controles por Touch (Arrastar a nave na tela)
@@ -297,16 +312,21 @@ canvas.addEventListener("touchmove", handleTouch, { passive: false });
 
 // ⏸️ Pausa com tecla P
 document.addEventListener("keydown", e => { 
-  if(e.key === "p"){ 
+  if(e.key.toLowerCase() === "p" && canvas.style.display !== "none"){ 
     gameState.running = !gameState.running; 
     if(gameState.running) loop(); 
   }
 });
 
 // 🔫 Auto Shoot
-let autoShoot;
-function startAutoShoot(){ autoShoot = setInterval(()=>{ if(gameState.running) shoot(); }, 500); }
-function stopAutoShoot(){ clearInterval(autoShoot); }
+function startAutoShoot(){ 
+  autoShootInterval = setInterval(()=>{ if(gameState.running) shoot(); }, 500); 
+}
+function stopIntervals(){ 
+  clearInterval(enemyInterval);
+  clearInterval(powerUpInterval);
+  clearInterval(autoShootInterval);
+}
 
 // 🎮 Loop
 function loop(){ 
@@ -316,12 +336,14 @@ function loop(){
   }
 }
 
-// ✨ Fade-in/Fade-out
+// ✨ Fade-in/Fade-out corrigido
 function fade(el, show){
   if(!el) return;
-  el.style.display = "block"; 
-  el.style.opacity = show ? 0 : 1;
-  let op = show ? 0 : 1, step = show ? 0.05 : -0.05;
+  if(show) el.style.display = "block";
+  
+  let op = show ? 0 : 1;
+  el.style.opacity = op;
+  let step = show ? 0.05 : -0.05;
   
   function anim(){
     op += step; 
