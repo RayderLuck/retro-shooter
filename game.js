@@ -26,8 +26,32 @@ export class Game {
         this.score = 0;
         this.coins = 0;
         this.lives = 3;
+
+        // 🔊 Elementos de Áudio
+        this.bgMusic = document.getElementById('bgMusic');
+        this.laserSound = document.getElementById('laserSound');
         
+        // 🕹️ Estado do Joystick Virtual
+        this.joystickActive = false;
+        this.joystickVector = { x: 0, y: 0 };
+        this.joystickCenter = { x: 0, y: 0 };
+        this.maxJoystickDist = 40;
+
         this.setupListeners();
+        this.setupVirtualJoystick();
+    }
+
+    setVolume(vol) {
+        const val = vol / 100;
+        if (this.bgMusic) this.bgMusic.volume = val;
+        if (this.laserSound) this.laserSound.volume = val;
+    }
+
+    playLaser() {
+        if (this.laserSound) {
+            this.laserSound.currentTime = 0;
+            this.laserSound.play().catch(() => {});
+        }
     }
 
     setupListeners() {
@@ -51,42 +75,78 @@ export class Game {
             updateMousePosition(e.clientX, e.clientY);
         });
 
-        this.canvas.addEventListener('touchmove', (e) => {
-            if (e.touches.length > 0) {
-                updateMousePosition(e.touches[0].clientX, e.touches[0].clientY);
-            }
-            e.preventDefault();
-        }, { passive: false });
-
-        this.canvas.addEventListener('touchstart', (e) => {
-            if (e.touches.length > 0) {
-                updateMousePosition(e.touches[0].clientX, e.touches[0].clientY);
-            }
-        }, { passive: true });
-
         this.canvas.addEventListener('mouseleave', () => {
             this.mouseX = undefined;
             this.mouseY = undefined;
         });
     }
 
+    setupVirtualJoystick() {
+        const base = document.getElementById('virtualJoystick');
+        const stick = document.getElementById('joystickStick');
+        if (!base || !stick) return;
+
+        const handleTouchStart = (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = base.getBoundingClientRect();
+            this.joystickCenter = {
+                x: rect.left + rect.width / 2,
+                y: rect.top + rect.height / 2
+            };
+            this.joystickActive = true;
+            handleTouchMove(e);
+        };
+
+        const handleTouchMove = (e) => {
+            if (!this.joystickActive) return;
+            e.preventDefault();
+            const touch = e.touches[0];
+
+            let dx = touch.clientX - this.joystickCenter.x;
+            let dy = touch.clientY - this.joystickCenter.y;
+            const distance = Math.hypot(dx, dy);
+
+            if (distance > this.maxJoystickDist) {
+                dx = (dx / distance) * this.maxJoystickDist;
+                dy = (dy / distance) * this.maxJoystickDist;
+            }
+
+            stick.style.transform = `translate(${dx}px, ${dy}px)`;
+
+            this.joystickVector.x = dx / this.maxJoystickDist;
+            this.joystickVector.y = dy / this.maxJoystickDist;
+        };
+
+        const handleTouchEnd = (e) => {
+            if (!this.joystickActive) return;
+            e.preventDefault();
+            this.joystickActive = false;
+            this.joystickVector = { x: 0, y: 0 };
+            stick.style.transform = `translate(0px, 0px)`;
+        };
+
+        base.addEventListener('touchstart', handleTouchStart, { passive: false });
+        window.addEventListener('touchmove', handleTouchMove, { passive: false });
+        window.addEventListener('touchend', handleTouchEnd, { passive: false });
+    }
+
     shoot() {
-        const tipX = this.player.x + this.player.width; // Ponta direita da nave
+        const tipX = this.player.x + this.player.width; 
         const centerY = this.player.y + this.player.height / 2;
 
         if (this.player.shootType === 'duplo') {
-            // Dois tiros paralelos (um acima e um abaixo do centro)
             this.bullets.push({ x: tipX, y: centerY - 10, width: 12, height: 5, speed: 8 });
             this.bullets.push({ x: tipX, y: centerY + 5, width: 12, height: 5, speed: 8 });
         } else if (this.player.shootType === 'triplo') {
-            // Três tiros em leque/paralelos
             this.bullets.push({ x: tipX, y: centerY - 14, width: 12, height: 4, speed: 8 });
             this.bullets.push({ x: tipX, y: centerY - 3, width: 12, height: 4, speed: 8 });
             this.bullets.push({ x: tipX, y: centerY + 8, width: 12, height: 4, speed: 8 });
         } else {
-            // Tiro básico único saindo da ponta direita
             this.bullets.push({ x: tipX, y: centerY - 3, width: 12, height: 6, speed: 8 });
         }
+
+        this.playLaser();
     }
 
     spawnEnemy() {
@@ -97,7 +157,19 @@ export class Game {
     }
 
     update() {
-        this.player.update(this.keys, this.mouseX, this.mouseY, this.canvas.width, this.canvas.height);
+        // Aplica o movimento do joystick virtual caso esteja ativo
+        if (this.joystickActive) {
+            this.player.x += this.joystickVector.x * this.player.speed;
+            this.player.y += this.joystickVector.y * this.player.speed;
+            
+            // Limites do canvas
+            if (this.player.x < 0) this.player.x = 0;
+            if (this.player.x > this.canvas.width - this.player.width) this.player.x = this.canvas.width - this.player.width;
+            if (this.player.y < 0) this.player.y = 0;
+            if (this.player.y > this.canvas.height - this.player.height) this.player.y = this.canvas.height - this.player.height;
+        } else {
+            this.player.update(this.keys, this.mouseX, this.mouseY, this.canvas.width, this.canvas.height);
+        }
 
         this.shootTimer++;
         if (this.shootTimer >= 15) {
@@ -130,7 +202,6 @@ export class Game {
                         this.enemies.splice(eIndex, 1);
                         this.score += 100;
 
-                        // Chance de dropar itens variados
                         if (Math.random() < 0.5) {
                             const rand = Math.random();
                             let dropType = 'moeda';
@@ -145,7 +216,6 @@ export class Game {
             });
         });
 
-        // Coleta de Power-ups e Moedas
         this.powerUps.forEach((item, index) => {
             item.update();
             
@@ -157,7 +227,7 @@ export class Game {
                 } else if (item.type === 'velocidade') {
                     if (this.player.speedLevel < 3) {
                         this.player.speedLevel++;
-                        this.player.speed += 2; // Aumenta a velocidade a cada estágio
+                        this.player.speed += 2;
                     }
                 }
                 this.powerUps.splice(index, 1);
@@ -191,6 +261,9 @@ export class Game {
     }
 
     start() {
+        if (this.bgMusic) {
+            this.bgMusic.play().catch(() => {});
+        }
         this.loop();
     }
 }
