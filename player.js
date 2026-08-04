@@ -28,11 +28,19 @@ export class Player {
     }
 
     draw(ctx, spriteImage) {
+        ctx.save();
+        
+        // 🌟 Efeito visual neon de brilho para a nave
+        ctx.shadowColor = '#00ffcc';
+        ctx.shadowBlur = 12;
+
         if (spriteImage && spriteImage.complete && spriteImage.naturalWidth !== 0) {
             ctx.drawImage(spriteImage, this.x, this.y, this.width, this.height);
         } else {
             ctx.fillStyle = '#00ffcc';
             ctx.fillRect(this.x, this.y, this.width, this.height);
         }
+
+        ctx.restore();
     }
 }
