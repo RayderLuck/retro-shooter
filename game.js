@@ -20,6 +20,11 @@ export class Game {
         this.bullets = [];
         this.keys = {};
         
+        // Posições de mouse/toque e controle de tiro automático
+        this.mouseX = undefined;
+        this.mouseY = undefined;
+        this.shootTimer = 0;
+
         this.score = 0;
         this.coins = 0;
         this.lives = 3;
@@ -30,11 +35,31 @@ export class Game {
     setupListeners() {
         window.addEventListener('keydown', (e) => {
             this.keys[e.key] = true;
-            if (e.key === ' ' || e.key === 'Spacebar') {
-                this.shoot();
-            }
         });
-        window.addEventListener('keyup', (e) => this.keys[e.key] = false);
+        window.addEventListener('keyup', (e) => {
+            this.keys[e.key] = false;
+        });
+
+        // Eventos de movimento por Mouse e Toque para a nave seguir livremente
+        this.canvas.addEventListener('mousemove', (e) => {
+            const rect = this.canvas.getBoundingClientRect();
+            this.mouseX = e.clientX - rect.left;
+            this.mouseY = e.clientY - rect.top;
+        });
+
+        this.canvas.addEventListener('touchmove', (e) => {
+            if (e.touches.length > 0) {
+                const rect = this.canvas.getBoundingClientRect();
+                this.mouseX = e.touches[0].clientX - rect.left;
+                this.mouseY = e.touches[0].clientY - rect.top;
+            }
+            e.preventDefault();
+        }, { passive: false });
+
+        this.canvas.addEventListener('mouseleave', () => {
+            this.mouseX = undefined;
+            this.mouseY = undefined;
+        });
     }
 
     shoot() {
@@ -49,14 +74,24 @@ export class Game {
 
     spawnEnemy() {
         if (Math.random() < 0.02) {
-            const x = Math.random() * (this.canvas.width - 35);
-            this.enemies.push(new Enemy(x, -40, 'normal'));
+            // Inimigos nascem na extremidade direita da tela, com altura aleatória
+            const y = Math.random() * (this.canvas.height - 50);
+            this.enemies.push(new Enemy(this.canvas.width + 40, y, 'normal'));
         }
     }
 
     update() {
-        this.player.update(this.keys, this.canvas.width, this.canvas.height);
+        // Atualiza a nave passando o mouse/toque e limites do canvas
+        this.player.update(this.keys, this.mouseX, this.mouseY, this.canvas.width, this.canvas.height);
 
+        // Disparo automático a cada X quadros
+        this.shootTimer++;
+        if (this.shootTimer >= 15) { // Ajuste a velocidade do tiro automático aqui se quiser
+            this.shoot();
+            this.shootTimer = 0;
+        }
+
+        // Atualiza tiros do jogador (indo para cima)
         this.bullets.forEach((bullet, bIndex) => {
             bullet.y -= bullet.speed;
             if (bullet.y < 0) {
@@ -64,15 +99,18 @@ export class Game {
             }
         });
 
+        // Gera e atualiza inimigos (vindo da direita para a esquerda)
         this.spawnEnemy();
         this.enemies.forEach((enemy, eIndex) => {
-            enemy.update(this.canvas.width);
+            enemy.update(this.canvas.height);
             
-            if (enemy.y > this.canvas.height) {
+            // Remove inimigos que saem pelo lado esquerdo da tela
+            if (enemy.x + enemy.width < 0) {
                 this.enemies.splice(eIndex, 1);
                 return;
             }
 
+            // Verifica colisão do tiro com o inimigo
             this.bullets.forEach((bullet, bIndex) => {
                 if (enemy.checkCollision(bullet)) {
                     enemy.health -= 1;
@@ -91,6 +129,7 @@ export class Game {
             });
         });
 
+        // Atualiza power-ups / moedas
         this.powerUps.forEach((item, index) => {
             item.update();
             
@@ -112,9 +151,10 @@ export class Game {
     draw() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-        // Passa a imagem correta da nave para o método draw
+        // Desenha a nave com o sprite carregado
         this.player.draw(this.ctx, this.shipImage);
 
+        // Desenha tiros
         this.ctx.fillStyle = '#00ffff';
         this.bullets.forEach(bullet => {
             this.ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
