@@ -1,4 +1,4 @@
-// 🎮 Retro Shooter v5.3.1 — Mobile Touch & Responsive Canvas
+// 🎮 Retro Shooter v5.3.2 — Correção de Inimigos e Power-Ups
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
@@ -23,19 +23,16 @@ Object.values(sounds).forEach(m => { m.loop = true; m.volume = 0.5; });
 sounds.shoot.loop = false; sounds.shoot.volume = 0.7;
 sounds.boom.loop = false; sounds.boom.volume = 0.8;
 
-// 📱 Ajustar o tamanho do Canvas para qualquer tela/rotação
+// 📱 Ajustar o tamanho do Canvas
 function resizeCanvas() {
   const maxWidth = window.innerWidth * 0.95;
   const maxHeight = window.innerHeight * 0.85;
-  
   let w = maxWidth;
   let h = w * (500 / 800);
-  
   if (h > maxHeight) {
     h = maxHeight;
     w = h * (800 / 500);
   }
-  
   canvas.width = 800;
   canvas.height = 500;
   canvas.style.width = `${w}px`;
@@ -62,7 +59,7 @@ function drawBackground() {
   });
 }
 
-// 🚀 Nave (carregando ship.png)
+// 🚀 Nave
 const shipImg = new Image(); 
 shipImg.src = "ship.png";
 
@@ -84,23 +81,27 @@ function shoot() {
   sounds.shoot.currentTime = 0; sounds.shoot.play().catch(() => {});
 }
 
-// 👾 Inimigos e PowerUps
+// 👾 Inimigos (Agora TODOS explodem ao morrer)
 function spawnEnemy() {
   if (!gameState.running) return;
   gameState.enemies.push({
     x: canvas.width,
     y: Math.random() * (canvas.height - 30),
     w: 30, h: 30, speed: 3,
-    type: Math.random() < 0.3 ? "exploder" : "normal"
+    color: Math.random() < 0.5 ? "red" : "orange" // Inimigos vermelhos ou laranjas
   });
 }
+
+// 🪙 PowerUps (Visíveis e brilhantes como moedas/itens)
 function spawnPowerUp() {
   if (!gameState.running) return;
-  let type = Math.floor(Math.random()*3), colors=["blue","green","yellow"];
+  let type = Math.floor(Math.random() * 3);
+  // Cores mais chamativas: Azul (Arma), Verde (Escudo), Dourado/Amarelo (Boost)
+  let colors = ["#00ffff", "#00ff00", "#ffd700"]; 
   gameState.powerUps.push({
     x: canvas.width,
-    y: Math.random()*(canvas.height-20),
-    w:20, h:20, speed:2,
+    y: Math.random() * (canvas.height - 25),
+    w: 25, h: 25, speed: 2,
     type: type,
     color: colors[type]
   });
@@ -108,24 +109,24 @@ function spawnPowerUp() {
 
 // 💥 Explosão animada
 function explode(x, y) {
-  gameState.explosions.push({ x: x+15, y: y+15, r: 5, maxR: 30, alpha: 1 });
+  gameState.explosions.push({ x: x + 15, y: y + 15, r: 5, maxR: 35, alpha: 1 });
   sounds.boom.currentTime = 0; sounds.boom.play().catch(() => {});
 }
 function drawExplosions() {
   gameState.explosions.forEach((ex, i) => {
-    ctx.fillStyle = `rgba(255,165,0,${ex.alpha})`;
+    ctx.fillStyle = `rgba(255, 140, 0, ${ex.alpha})`;
     ctx.beginPath();
-    ctx.arc(ex.x, ex.y, ex.r, 0, Math.PI*2);
+    ctx.arc(ex.x, ex.y, ex.r, 0, Math.PI * 2);
     ctx.fill();
     ex.r += 2; ex.alpha -= 0.05;
-    if (ex.r >= ex.maxR || ex.alpha <= 0) gameState.explosions.splice(i,1);
+    if (ex.r >= ex.maxR || ex.alpha <= 0) gameState.explosions.splice(i, 1);
   });
 }
 
 // 🔍 Colisão
-const isColliding = (a,b)=>a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
+const isColliding = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
 
-// 🎮 Atualização
+// 🎮 Atualização principal do Jogo
 function update() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawBackground(); 
@@ -139,7 +140,7 @@ function update() {
     
     gameState.enemies.forEach((e, j) => { 
       if (isColliding(b, e)) {
-        if (e.type === "exploder") explode(e.x, e.y);
+        explode(e.x, e.y); // Todos explodem ao levar tiro!
         gameState.enemies.splice(j, 1); 
         gameState.bullets.splice(i, 1); 
         gameState.score += 100;
@@ -150,11 +151,11 @@ function update() {
   // Inimigos
   gameState.enemies.forEach((e, i) => { 
     e.x -= e.speed; 
-    ctx.fillStyle = e.type === "exploder" ? "orange" : "red"; 
+    ctx.fillStyle = e.color; 
     ctx.fillRect(e.x, e.y, e.w, e.h);
     
     if (!gameState.shield && isColliding(gameState.ship, e)) {
-      if (e.type === "exploder") explode(e.x, e.y);
+      explode(e.x, e.y);
       gameState.enemies.splice(i, 1); 
       gameState.lives--; 
       if (gameState.lives <= 0) { endGame(); }
@@ -162,11 +163,16 @@ function update() {
     if (e.x + e.w < 0) gameState.enemies.splice(i, 1); 
   });
 
-  // PowerUps
+  // PowerUps (Desenhados com destaque)
   gameState.powerUps.forEach((p, i) => { 
     p.x -= p.speed; 
     ctx.fillStyle = p.color; 
     ctx.fillRect(p.x, p.y, p.w, p.h);
+    
+    // Borda brilhante no item para facilitar a visualização
+    ctx.strokeStyle = "white";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(p.x, p.y, p.w, p.h);
     
     if (isColliding(gameState.ship, p)) { 
       if (p.type === 0) gameState.weaponLevel = Math.min(3, gameState.weaponLevel + 1);
@@ -235,7 +241,7 @@ function restartGame(){
   updateRankingMenu(); 
 }
 
-// 🚀 Iniciar jogo (Vinculado ao botão START)
+// 🚀 Iniciar jogo
 if (startBtn) {
   startBtn.addEventListener("click", () => {
     let nameField = document.getElementById("playerName");
