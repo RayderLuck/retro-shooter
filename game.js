@@ -66,7 +66,7 @@ export class Game {
         });
     }
 
-    // 🕹️ Lógica do Joystick Virtual na tela
+    // 🕹️ Joystick Virtual com rastreamento global para celular
     setupJoystick() {
         const joystickBase = document.getElementById('virtualJoystick');
         const joystickStick = document.getElementById('joystickStick');
@@ -74,23 +74,14 @@ export class Game {
         if (!joystickBase || !joystickStick) return;
 
         let active = false;
-        let baseRect = {};
 
-        const startTouch = (e) => {
-            active = true;
-            baseRect = joystickBase.getBoundingClientRect();
-            moveTouch(e);
-        };
-
-        const moveTouch = (e) => {
-            if (!active) return;
-            const touch = e.touches ? e.touches[0] : e;
-            
+        const handleTouch = (clientX, clientY) => {
+            const baseRect = joystickBase.getBoundingClientRect();
             let centerX = baseRect.left + baseRect.width / 2;
             let centerY = baseRect.top + baseRect.height / 2;
             
-            let dx = touch.clientX - centerX;
-            let dy = touch.clientY - centerY;
+            let dx = clientX - centerX;
+            let dy = clientY - centerY;
             
             let distance = Math.sqrt(dx * dx + dy * dy);
             let maxDist = baseRect.width / 2 - 15;
@@ -102,14 +93,30 @@ export class Game {
             
             joystickStick.style.transform = `translate(${dx}px, ${dy}px)`;
             
-            // Simula as setas do teclado com base na direção do joystick
             this.keys['ArrowLeft'] = dx < -10;
             this.keys['ArrowRight'] = dx > 10;
             this.keys['ArrowUp'] = dy < -10;
             this.keys['ArrowDown'] = dy > 10;
         };
 
-        const endTouch = () => {
+        joystickBase.addEventListener('touchstart', (e) => {
+            active = true;
+            if (e.touches.length > 0) {
+                handleTouch(e.touches[0].clientX, e.touches[0].clientY);
+            }
+            e.preventDefault();
+        }, { passive: false });
+
+        window.addEventListener('touchmove', (e) => {
+            if (!active) return;
+            if (e.touches.length > 0) {
+                handleTouch(e.touches[0].clientX, e.touches[0].clientY);
+            }
+            e.preventDefault();
+        }, { passive: false });
+
+        const endHandler = () => {
+            if (!active) return;
             active = false;
             joystickStick.style.transform = `translate(0px, 0px)`;
             this.keys['ArrowLeft'] = false;
@@ -118,9 +125,8 @@ export class Game {
             this.keys['ArrowDown'] = false;
         };
 
-        joystickBase.addEventListener('touchstart', startTouch);
-        window.addEventListener('touchmove', moveTouch);
-        window.addEventListener('touchend', endTouch);
+        window.addEventListener('touchend', endHandler);
+        window.addEventListener('touchcancel', endHandler);
     }
 
     shoot() {
@@ -240,6 +246,7 @@ export class Game {
     triggerGameOver() {
         this.isGameOver = true;
         if (this.bgMusic) this.bgMusic.pause();
+        
         const gameOverScreen = document.getElementById('gameOver');
         const finalScoreText = document.getElementById('finalScore');
         const canvas = document.getElementById('gameCanvas');
@@ -289,7 +296,7 @@ export class Game {
         if (gameOverScreen) gameOverScreen.style.display = 'none';
 
         const joystick = document.getElementById('virtualJoystick');
-        if (joystick) joystick.style.display = 'block';
+        if (joystick) joystick.style.display = 'flex';
 
         if (this.bgMusic) {
             this.bgMusic.currentTime = 0;
