@@ -320,11 +320,27 @@ export class Game {
     }
 
     start() {
+        // Reseta estados para garantir funcionamento limpo ao iniciar/reiniciar
         this.isGameOver = false;
+        this.lives = 3;
+        this.score = 0;
+        this.coins = 0;
+        this.enemies = [];
+        this.bullets = [];
+        this.powerUps = [];
+
+        // Garante que o canvas esteja visível e esconde telas de menu/gameover caso necessário
+        if (this.canvas) this.canvas.style.display = 'block';
+        const gameOverScreen = document.getElementById('gameOver');
+        if (gameOverScreen) gameOverScreen.style.display = 'none';
+        const menuScreen = document.getElementById('menu'); // Caso tenha menu inicial
+        if (menuScreen) menuScreen.style.display = 'none';
+
         if (this.bgMusic) {
             this.bgMusic.currentTime = 0;
             this.bgMusic.play().catch(() => {});
         }
+        
         this.loop();
     }
 }
