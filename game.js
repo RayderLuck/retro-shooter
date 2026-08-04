@@ -217,10 +217,12 @@ export class Game {
         const gameOverScreen = document.getElementById('gameOver');
         const finalScoreText = document.getElementById('finalScore');
         const canvas = document.getElementById('gameCanvas');
+        const joystick = document.getElementById('virtualJoystick');
 
         if (gameOverScreen) gameOverScreen.style.display = 'flex';
         if (finalScoreText) finalScoreText.innerText = `Pontos: ${this.score}`;
         if (canvas) canvas.style.display = 'none';
+        if (joystick) joystick.style.display = 'none'; // Esconde o joystick no Game Over
     }
 
     draw() {
@@ -256,8 +258,12 @@ export class Game {
         this.powerUps = [];
 
         if (this.canvas) this.canvas.style.display = 'block';
+        
         const gameOverScreen = document.getElementById('gameOver');
         if (gameOverScreen) gameOverScreen.style.display = 'none';
+
+        const joystick = document.getElementById('virtualJoystick');
+        if (joystick) joystick.style.display = 'block'; // Mostra o joystick ao iniciar o jogo
 
         if (this.bgMusic) {
             this.bgMusic.currentTime = 0;
