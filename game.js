@@ -35,6 +35,7 @@ export class Game {
         this.coins = 0;
         this.lives = 3;
         this.isGameOver = false;
+        this.invulnerableTimer = 0; // 🛡️ Tempo de invulnerabilidade após tomar dano
 
         // 🔊 Elementos de Áudio
         this.bgMusic = document.getElementById('bgMusic');
@@ -167,8 +168,13 @@ export class Game {
 
         this.player.update(this.keys, this.mouseX, this.mouseY, this.canvas.width, this.canvas.height);
 
+        // Reduz o timer de invulnerabilidade gradualmente
+        if (this.invulnerableTimer > 0) {
+            this.invulnerableTimer--;
+        }
+
         this.shootTimer++;
-        if (this.shootTimer >= 15) {
+        if (this.shootTimer >= 12) { // 👈 Cadência de tiro um pouco mais ágil
             this.shoot();
             this.shootTimer = 0;
         }
@@ -190,13 +196,16 @@ export class Game {
                 return;
             }
 
+            // Colisão com o Player (só tira vida se não estiver invulnerável)
             if (
+                this.invulnerableTimer === 0 &&
                 this.player.x < enemy.x + enemy.width &&
                 this.player.x + this.player.width > enemy.x &&
                 this.player.y < enemy.y + enemy.height &&
                 this.player.y + this.player.height > enemy.y
             ) {
                 this.lives -= 1;
+                this.invulnerableTimer = 60; // 🛡️ 1 segundo de invulnerabilidade (pisca na tela)
                 this.enemies.splice(eIndex, 1);
 
                 if (this.lives <= 0) {
@@ -267,22 +276,27 @@ export class Game {
     }
 
     draw() {
-        // 🌌 Renderização do Fundo Estrelado Dinâmico
+        // 🌌 Fundo Estelar Dinâmico com aceleração ao mover/atirar
         this.ctx.fillStyle = '#050510';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
         this.ctx.fillStyle = '#ffffff';
+        const isMovingFast = this.keys['ArrowLeft'] || this.keys['ArrowRight'] || this.keys['ArrowUp'] || this.keys['ArrowDown'];
+        const speedMultiplier = isMovingFast ? 2.5 : 1;
+
         this.stars.forEach(star => {
             this.ctx.fillRect(star.x, star.y, star.size, star.size);
-            star.x -= star.speed;
+            star.x -= star.speed * speedMultiplier;
             if (star.x < 0) {
                 star.x = this.canvas.width;
                 star.y = Math.random() * this.canvas.height;
             }
         });
 
-        // 🚀 Elementos do jogo mantidos intactos
-        this.player.draw(this.ctx, this.shipImage);
+        // 🚀 Renderiza o Jogador (pisca quando está invulnerável após tomar dano)
+        if (this.invulnerableTimer === 0 || Math.floor(this.invulnerableTimer / 4) % 2 === 0) {
+            this.player.draw(this.ctx, this.shipImage);
+        }
 
         this.ctx.fillStyle = '#00ffff';
         this.bullets.forEach(bullet => {
@@ -307,6 +321,7 @@ export class Game {
         this.lives = 3;
         this.score = 0;
         this.coins = 0;
+        this.invulnerableTimer = 0;
         this.enemies = [];
         this.bullets = [];
         this.powerUps = [];
