@@ -2,6 +2,7 @@ export class Enemy {
     constructor(x, y, type = 'normal') {
         this.x = x;
         this.y = y;
+        this.initialY = y; // 🌌 Guarda a posição Y original para o zigue-zague
         this.width = 35;
         this.height = 35;
         this.type = type; // 'normal' ou 'chefe'
@@ -17,6 +18,7 @@ export class Enemy {
         }
         
         this.direction = 1; // Para oscilação vertical se necessário
+        this.angle = Math.random() * Math.PI; // 🌊 Ângulo inicial para variação de onda
     }
 
     // Atualiza a movimentação do inimigo da direita para a esquerda
@@ -24,6 +26,12 @@ export class Enemy {
         // Movimento principal: da direita para a esquerda
         this.x -= this.speed;
         
+        // Se for inimigo normal, adiciona um leve movimento em onda (zigue-zague suave)
+        if (this.type === 'normal') {
+            this.angle += 0.05;
+            this.y = this.initialY + Math.sin(this.angle) * 25;
+        }
+
         // Se for chefe, adiciona um leve movimento oscilatório vertical para dar dinamismo
         if (this.type === 'chefe') {
             this.y += this.direction * 1;
@@ -33,11 +41,15 @@ export class Enemy {
         }
     }
 
-    // Desenha o inimigo no canvas
+    // Desenha o inimigo no canvas com brilho neon
     draw(ctx) {
         ctx.save();
+        
         if (this.type === 'chefe') {
-            ctx.fillStyle = '#ff3333'; // Vermelho forte para o chefe
+            // 🌟 Efeito neon vermelho para o chefe
+            ctx.shadowColor = '#ff0000';
+            ctx.shadowBlur = 15;
+            ctx.fillStyle = '#ff3333'; 
             ctx.fillRect(this.x, this.y, this.width, this.height);
             
             // Detalhes visuais do chefe
@@ -45,9 +57,13 @@ export class Enemy {
             ctx.fillRect(this.x + 10, this.y + 10, 10, 10);
             ctx.fillRect(this.x + this.width - 20, this.y + 10, 10, 10);
         } else {
-            ctx.fillStyle = '#ff6600'; // Laranja para inimigo normal
+            // 🌟 Efeito neon laranja para inimigo normal
+            ctx.shadowColor = '#ff6600';
+            ctx.shadowBlur = 10;
+            ctx.fillStyle = '#ff6600'; 
             ctx.fillRect(this.x, this.y, this.width, this.height);
         }
+        
         ctx.restore();
     }
 
