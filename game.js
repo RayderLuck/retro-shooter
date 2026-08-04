@@ -34,7 +34,6 @@ export class Game {
         window.addEventListener('keydown', (e) => { this.keys[e.key] = true; });
         window.addEventListener('keyup', (e) => { this.keys[e.key] = false; });
 
-        // Função auxiliar para atualizar as coordenadas relativas do mouse/toque no canvas
         const updateMousePosition = (clientX, clientY) => {
             const rect = this.canvas.getBoundingClientRect();
             const scaleX = this.canvas.width / rect.width;
@@ -48,7 +47,6 @@ export class Game {
             updateMousePosition(e.clientX, e.clientY);
         });
 
-        // Garante que a posição seja capturada assim que o mouse entra no canvas
         this.canvas.addEventListener('mouseenter', (e) => {
             updateMousePosition(e.clientX, e.clientY);
         });
@@ -73,13 +71,22 @@ export class Game {
     }
 
     shoot() {
-        this.bullets.push({
-            x: this.player.x + this.player.width,
-            y: this.player.y + this.player.height / 2 - 3,
-            width: 12,
-            height: 6,
-            speed: 8
-        });
+        const tipX = this.player.x + this.player.width; // Ponta direita da nave
+        const centerY = this.player.y + this.player.height / 2;
+
+        if (this.player.shootType === 'duplo') {
+            // Dois tiros paralelos (um acima e um abaixo do centro)
+            this.bullets.push({ x: tipX, y: centerY - 10, width: 12, height: 5, speed: 8 });
+            this.bullets.push({ x: tipX, y: centerY + 5, width: 12, height: 5, speed: 8 });
+        } else if (this.player.shootType === 'triplo') {
+            // Três tiros em leque/paralelos
+            this.bullets.push({ x: tipX, y: centerY - 14, width: 12, height: 4, speed: 8 });
+            this.bullets.push({ x: tipX, y: centerY - 3, width: 12, height: 4, speed: 8 });
+            this.bullets.push({ x: tipX, y: centerY + 8, width: 12, height: 4, speed: 8 });
+        } else {
+            // Tiro básico único saindo da ponta direita
+            this.bullets.push({ x: tipX, y: centerY - 3, width: 12, height: 6, speed: 8 });
+        }
     }
 
     spawnEnemy() {
@@ -90,17 +97,14 @@ export class Game {
     }
 
     update() {
-        // Atualiza a nave seguindo o mouse/toque se estiver ativo
         this.player.update(this.keys, this.mouseX, this.mouseY, this.canvas.width, this.canvas.height);
 
-        // Disparo automático contínuo
         this.shootTimer++;
         if (this.shootTimer >= 15) {
             this.shoot();
             this.shootTimer = 0;
         }
 
-        // Atualiza tiros do jogador (indo para a direita)
         this.bullets.forEach((bullet, bIndex) => {
             bullet.x += bullet.speed;
             if (bullet.x > this.canvas.width) {
@@ -108,7 +112,6 @@ export class Game {
             }
         });
 
-        // Gera e atualiza inimigos (indo da direita para a esquerda)
         this.spawnEnemy();
         this.enemies.forEach((enemy, eIndex) => {
             enemy.update(this.canvas.height);
@@ -118,7 +121,6 @@ export class Game {
                 return;
             }
 
-            // Verifica colisão do tiro com o inimigo
             this.bullets.forEach((bullet, bIndex) => {
                 if (enemy.checkCollision(bullet)) {
                     enemy.health -= 1;
@@ -128,8 +130,14 @@ export class Game {
                         this.enemies.splice(eIndex, 1);
                         this.score += 100;
 
+                        // Chance de dropar itens variados
                         if (Math.random() < 0.5) {
-                            const dropType = Math.random() < 0.7 ? 'moeda' : 'explosivo';
+                            const rand = Math.random();
+                            let dropType = 'moeda';
+                            if (rand < 0.3) dropType = 'duplo';
+                            else if (rand < 0.5) dropType = 'triplo';
+                            else if (rand < 0.7) dropType = 'velocidade';
+
                             this.powerUps.push(new PowerUp(enemy.x, enemy.y, dropType));
                         }
                     }
@@ -137,18 +145,23 @@ export class Game {
             });
         });
 
-        // Atualiza e verifica coleta de power-ups / moedas
+        // Coleta de Power-ups e Moedas
         this.powerUps.forEach((item, index) => {
             item.update();
             
             if (item.checkCollision(this.player)) {
                 if (item.type === 'moeda') {
                     this.coins += 1;
-                } else {
+                } else if (item.type === 'duplo' || item.type === 'triplo') {
                     this.player.shootType = item.type;
+                } else if (item.type === 'velocidade') {
+                    if (this.player.speedLevel < 3) {
+                        this.player.speedLevel++;
+                        this.player.speed += 2; // Aumenta a velocidade a cada estágio
+                    }
                 }
                 this.powerUps.splice(index, 1);
-            } else if (item.x < -50 || item.y > this.canvas.height) {
+            } else if (item.x < -50) {
                 this.powerUps.splice(index, 1);
             }
         });
