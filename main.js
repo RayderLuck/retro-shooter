@@ -53,20 +53,47 @@ export class Game {
         window.addEventListener('keydown', (e) => { this.keys[e.key] = true; });
         window.addEventListener('keyup', (e) => { this.keys[e.key] = false; });
 
+        const updatePosition = (clientX, clientY) => {
+            const rect = this.canvas.getBoundingClientRect();
+            const scaleX = this.canvas.width / rect.width;
+            const scaleY = this.canvas.height / rect.height;
+            
+            this.mouseX = (clientX - rect.left) * scaleX;
+            this.mouseY = (clientY - rect.top) * scaleY;
+        };
+
         // Eventos de Mouse (PC)
         this.canvas.addEventListener('mousemove', (e) => {
-            const rect = this.canvas.getBoundingClientRect();
-            this.mouseX = (e.clientX - rect.left) * (this.canvas.width / rect.width);
-            this.mouseY = (e.clientY - rect.top) * (this.canvas.height / rect.height);
+            updatePosition(e.clientX, e.clientY);
         });
 
         this.canvas.addEventListener('mouseleave', () => {
             this.mouseX = undefined;
             this.mouseY = undefined;
         });
+
+        // 📱 Eventos de Toque (Celular)
+        this.canvas.addEventListener('touchstart', (e) => {
+            if (e.touches.length > 0) {
+                updatePosition(e.touches[0].clientX, e.touches[0].clientY);
+            }
+            e.preventDefault();
+        }, { passive: false });
+
+        this.canvas.addEventListener('touchmove', (e) => {
+            if (e.touches.length > 0) {
+                updatePosition(e.touches[0].clientX, e.touches[0].clientY);
+            }
+            e.preventDefault();
+        }, { passive: false });
+
+        this.canvas.addEventListener('touchend', () => {
+            this.mouseX = undefined;
+            this.mouseY = undefined;
+        });
     }
 
-    // 🕹️ Configuração do Joystick Virtual na Tela
+    // 🕹️ Joystick Virtual
     setupJoystick() {
         const joystickBase = document.getElementById('virtualJoystick');
         const joystickStick = document.getElementById('joystickStick');
@@ -102,7 +129,6 @@ export class Game {
             
             joystickStick.style.transform = `translate(${dx}px, ${dy}px)`;
             
-            // Traduz o movimento do joystick para os comandos de direção
             this.keys['ArrowLeft'] = dx < -10;
             this.keys['ArrowRight'] = dx > 10;
             this.keys['ArrowUp'] = dy < -10;
@@ -167,7 +193,6 @@ export class Game {
         });
 
         this.spawnEnemy();
-
         this.enemies.forEach((enemy, eIndex) => {
             enemy.update(this.canvas.height);
             
@@ -176,7 +201,6 @@ export class Game {
                 return;
             }
 
-            // Colisão com a nave
             if (
                 this.player.x < enemy.x + enemy.width &&
                 this.player.x + this.player.width > enemy.x &&
@@ -301,7 +325,7 @@ export class Game {
     }
 }
 
-// 🚀 Inicialização Automática ao carregar o Script
+// 🚀 Vincula o Botão Start e o Jogo
 window.addEventListener('DOMContentLoaded', () => {
     const canvas = document.getElementById('gameCanvas');
     const startBtn = document.getElementById('startBtn');
