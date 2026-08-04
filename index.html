@@ -35,8 +35,15 @@
         </div>
     </div>
 
-    <!-- 🎮 Tela do Jogo -->
-    <canvas id="gameCanvas" width="800" height="500"></canvas>
+    <!-- 🎮 Tela do Jogo e Joystick Virtual -->
+    <div id="game-container" style="position: relative; display: flex; justify-content: center; align-items: center;">
+        <canvas id="gameCanvas" width="800" height="500" style="display: none;"></canvas>
+        
+        <!-- Joystick Virtual para Celular -->
+        <div id="virtualJoystick" class="joystick-base" style="display: none;">
+            <div id="joystickStick" class="joystick-handle"></div>
+        </div>
+    </div>
 
     <!-- 💥 Tela de Game Over -->
     <div id="gameOver" class="menu-container" style="display: none;">
@@ -44,6 +51,10 @@
         <p id="finalScore" class="score-text">Pontos: 0</p>
         <button class="arcade-btn" onclick="restartGame()">JOGAR NOVAMENTE</button>
     </div>
+
+    <!-- 🔊 Elementos de Áudio -->
+    <audio id="bgMusic" src="fase1.wav" loop></audio>
+    <audio id="laserSound" src="laser1.wav"></audio>
 
     <!-- Novo script de inicialização modular -->
     <script type="module" src="main.js"></script>
