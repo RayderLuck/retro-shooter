@@ -15,17 +15,22 @@ window.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        if (startBtn) {
-            startBtn.addEventListener('click', () => {
-                const nameField = document.getElementById('playerName');
-                if (nameField && !nameField.value.trim()) {
-                    alert('Digite seu nome antes de começar!');
-                    return;
-                }
+        const startGame = (e) => {
+            if (e) e.preventDefault(); // Evita duplo disparo ou atraso no mobile
+            
+            const nameField = document.getElementById('playerName');
+            if (nameField && !nameField.value.trim()) {
+                alert('Digite seu nome antes de começar!');
+                return;
+            }
 
-                if (menu) menu.style.display = 'none';
-                game.start();
-            });
+            if (menu) menu.style.display = 'none';
+            game.start();
+        };
+
+        if (startBtn) {
+            startBtn.addEventListener('click', startGame);
+            startBtn.addEventListener('touchend', startGame, { passive: false });
         }
     }
 });
