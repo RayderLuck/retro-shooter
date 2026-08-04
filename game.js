@@ -8,10 +8,9 @@ export class Game {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
         
-        this.player = new Player(canvas.width / 2 - 20, canvas.height - 70);
+        this.player = new Player(canvas.width / 2 - 20, canvas.height / 2 - 20);
         this.ui = new UI();
         
-        // Carrega o sprite da nave original
         this.shipImage = new Image();
         this.shipImage.src = 'ship.png';
 
@@ -20,7 +19,6 @@ export class Game {
         this.bullets = [];
         this.keys = {};
         
-        // Posições de mouse/toque e controle de tiro automático
         this.mouseX = undefined;
         this.mouseY = undefined;
         this.shootTimer = 0;
@@ -33,25 +31,26 @@ export class Game {
     }
 
     setupListeners() {
-        window.addEventListener('keydown', (e) => {
-            this.keys[e.key] = true;
-        });
-        window.addEventListener('keyup', (e) => {
-            this.keys[e.key] = false;
-        });
+        window.addEventListener('keydown', (e) => { this.keys[e.key] = true; });
+        window.addEventListener('keyup', (e) => { this.keys[e.key] = false; });
 
-        // Eventos de movimento por Mouse e Toque para a nave seguir livremente
-        this.canvas.addEventListener('mousemove', (e) => {
+        // Captura correta do mouse relativa ao canvas redimensionado (PC e Touch)
+        const updateMousePosition = (clientX, clientY) => {
             const rect = this.canvas.getBoundingClientRect();
-            this.mouseX = e.clientX - rect.left;
-            this.mouseY = e.clientY - rect.top;
+            const scaleX = this.canvas.width / rect.width;
+            const scaleY = this.canvas.height / rect.height;
+            
+            this.mouseX = (clientX - rect.left) * scaleX;
+            this.mouseY = (clientY - rect.top) * scaleY;
+        };
+
+        this.canvas.addEventListener('mousemove', (e) => {
+            updateMousePosition(e.clientX, e.clientY);
         });
 
         this.canvas.addEventListener('touchmove', (e) => {
             if (e.touches.length > 0) {
-                const rect = this.canvas.getBoundingClientRect();
-                this.mouseX = e.touches[0].clientX - rect.left;
-                this.mouseY = e.touches[0].clientY - rect.top;
+                updateMousePosition(e.touches[0].clientX, e.touches[0].clientY);
             }
             e.preventDefault();
         }, { passive: false });
@@ -63,48 +62,47 @@ export class Game {
     }
 
     shoot() {
+        // O tiro sai da frente (direita) da nave, indo horizontalmente para a direita
         this.bullets.push({
-            x: this.player.x + this.player.width / 2 - 3,
-            y: this.player.y,
-            width: 6,
-            height: 12,
-            speed: 7
+            x: this.player.x + this.player.width,
+            y: this.player.y + this.player.height / 2 - 3,
+            width: 12,
+            height: 6,
+            speed: 8
         });
     }
 
     spawnEnemy() {
         if (Math.random() < 0.02) {
-            // Inimigos nascem na extremidade direita da tela, com altura aleatória
             const y = Math.random() * (this.canvas.height - 50);
             this.enemies.push(new Enemy(this.canvas.width + 40, y, 'normal'));
         }
     }
 
     update() {
-        // Atualiza a nave passando o mouse/toque e limites do canvas
+        // Atualiza a nave seguindo o mouse/toque
         this.player.update(this.keys, this.mouseX, this.mouseY, this.canvas.width, this.canvas.height);
 
-        // Disparo automático a cada X quadros
+        // Disparo automático contínuo
         this.shootTimer++;
-        if (this.shootTimer >= 15) { // Ajuste a velocidade do tiro automático aqui se quiser
+        if (this.shootTimer >= 15) {
             this.shoot();
             this.shootTimer = 0;
         }
 
-        // Atualiza tiros do jogador (indo para cima)
+        // Atualiza tiros do jogador (indo para a direita)
         this.bullets.forEach((bullet, bIndex) => {
-            bullet.y -= bullet.speed;
-            if (bullet.y < 0) {
+            bullet.x += bullet.speed;
+            if (bullet.x > this.canvas.width) {
                 this.bullets.splice(bIndex, 1);
             }
         });
 
-        // Gera e atualiza inimigos (vindo da direita para a esquerda)
+        // Gera e atualiza inimigos (indo da direita para a esquerda)
         this.spawnEnemy();
         this.enemies.forEach((enemy, eIndex) => {
             enemy.update(this.canvas.height);
             
-            // Remove inimigos que saem pelo lado esquerdo da tela
             if (enemy.x + enemy.width < 0) {
                 this.enemies.splice(eIndex, 1);
                 return;
@@ -120,7 +118,8 @@ export class Game {
                         this.enemies.splice(eIndex, 1);
                         this.score += 100;
 
-                        if (Math.random() < 0.4) {
+                        // Dropa moedas ou power-ups na posição do inimigo derrotado
+                        if (Math.random() < 0.5) {
                             const dropType = Math.random() < 0.7 ? 'moeda' : 'explosivo';
                             this.powerUps.push(new PowerUp(enemy.x, enemy.y, dropType));
                         }
@@ -129,10 +128,11 @@ export class Game {
             });
         });
 
-        // Atualiza power-ups / moedas
+        // Atualiza e verifica coleta de power-ups / moedas
         this.powerUps.forEach((item, index) => {
             item.update();
             
+            // Coleta o item ao encostar na nave
             if (item.checkCollision(this.player)) {
                 if (item.type === 'moeda') {
                     this.coins += 1;
@@ -140,7 +140,8 @@ export class Game {
                     this.player.shootType = item.type;
                 }
                 this.powerUps.splice(index, 1);
-            } else if (item.y > this.canvas.height) {
+            } else if (item.x < -50 || item.y > this.canvas.height) { 
+                // Remove se sair da tela (ajustado para o fluxo da esquerda)
                 this.powerUps.splice(index, 1);
             }
         });
@@ -151,7 +152,7 @@ export class Game {
     draw() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-        // Desenha a nave com o sprite carregado
+        // Desenha a nave com o sprite ship.png
         this.player.draw(this.ctx, this.shipImage);
 
         // Desenha tiros
