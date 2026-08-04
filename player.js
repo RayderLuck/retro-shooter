@@ -20,6 +20,7 @@ export class Player {
             if (keys['ArrowDown'] || keys['s'] || keys['S']) this.y += this.speed;
         }
 
+        // Limites da tela
         if (this.x < 0) this.x = 0;
         if (this.x + this.width > canvasWidth) this.x = canvasWidth - this.width;
         if (this.y < 0) this.y = 0;
