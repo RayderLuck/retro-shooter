@@ -26,12 +26,14 @@ export class Game {
         this.score = 0;
         this.coins = 0;
         this.lives = 3;
+        this.isGameOver = false;
 
         // 🔊 Elementos de Áudio
         this.bgMusic = document.getElementById('bgMusic');
         this.laserSound = document.getElementById('laserSound');
 
         this.setupListeners();
+        this.setupJoystick();
     }
 
     setVolume(vol) {
@@ -51,44 +53,74 @@ export class Game {
         window.addEventListener('keydown', (e) => { this.keys[e.key] = true; });
         window.addEventListener('keyup', (e) => { this.keys[e.key] = false; });
 
-        const updatePosition = (clientX, clientY) => {
-            const rect = this.canvas.getBoundingClientRect();
-            const scaleX = this.canvas.width / rect.width;
-            const scaleY = this.canvas.height / rect.height;
-            
-            this.mouseX = (clientX - rect.left) * scaleX;
-            this.mouseY = (clientY - rect.top) * scaleY;
-        };
-
         // Eventos de Mouse (PC)
         this.canvas.addEventListener('mousemove', (e) => {
-            updatePosition(e.clientX, e.clientY);
+            const rect = this.canvas.getBoundingClientRect();
+            this.mouseX = (e.clientX - rect.left) * (this.canvas.width / rect.width);
+            this.mouseY = (e.clientY - rect.top) * (this.canvas.height / rect.height);
         });
 
         this.canvas.addEventListener('mouseleave', () => {
             this.mouseX = undefined;
             this.mouseY = undefined;
         });
+    }
 
-        // 📱 Eventos de Toque (Celular) - Segue o dedo arrastando suavemente
-        this.canvas.addEventListener('touchstart', (e) => {
-            if (e.touches.length > 0) {
-                updatePosition(e.touches[0].clientX, e.touches[0].clientY);
+    // 🕹️ Configuração do Joystick Virtual na Tela
+    setupJoystick() {
+        const joystickBase = document.getElementById('virtualJoystick');
+        const joystickStick = document.getElementById('joystickStick');
+        
+        if (!joystickBase || !joystickStick) return;
+
+        let active = false;
+        let baseRect = {};
+
+        const startTouch = (e) => {
+            active = true;
+            baseRect = joystickBase.getBoundingClientRect();
+            moveTouch(e);
+        };
+
+        const moveTouch = (e) => {
+            if (!active) return;
+            const touch = e.touches ? e.touches[0] : e;
+            
+            let centerX = baseRect.left + baseRect.width / 2;
+            let centerY = baseRect.top + baseRect.height / 2;
+            
+            let dx = touch.clientX - centerX;
+            let dy = touch.clientY - centerY;
+            
+            let distance = Math.sqrt(dx * dx + dy * dy);
+            let maxDist = baseRect.width / 2 - 15;
+            
+            if (distance > maxDist) {
+                dx = (dx / distance) * maxDist;
+                dy = (dy / distance) * maxDist;
             }
-            e.preventDefault();
-        }, { passive: false });
+            
+            joystickStick.style.transform = `translate(${dx}px, ${dy}px)`;
+            
+            // Traduz o movimento do joystick para os comandos de direção
+            this.keys['ArrowLeft'] = dx < -10;
+            this.keys['ArrowRight'] = dx > 10;
+            this.keys['ArrowUp'] = dy < -10;
+            this.keys['ArrowDown'] = dy > 10;
+        };
 
-        this.canvas.addEventListener('touchmove', (e) => {
-            if (e.touches.length > 0) {
-                updatePosition(e.touches[0].clientX, e.touches[0].clientY);
-            }
-            e.preventDefault();
-        }, { passive: false });
+        const endTouch = () => {
+            active = false;
+            joystickStick.style.transform = `translate(0px, 0px)`;
+            this.keys['ArrowLeft'] = false;
+            this.keys['ArrowRight'] = false;
+            this.keys['ArrowUp'] = false;
+            this.keys['ArrowDown'] = false;
+        };
 
-        this.canvas.addEventListener('touchend', () => {
-            this.mouseX = undefined;
-            this.mouseY = undefined;
-        });
+        joystickBase.addEventListener('touchstart', startTouch, { passive: true });
+        window.addEventListener('touchmove', moveTouch, { passive: true });
+        window.addEventListener('touchend', endTouch);
     }
 
     shoot() {
@@ -117,7 +149,8 @@ export class Game {
     }
 
     update() {
-        // Move a nave seguindo diretamente o toque/mouse
+        if (this.isGameOver) return;
+
         this.player.update(this.keys, this.mouseX, this.mouseY, this.canvas.width, this.canvas.height);
 
         this.shootTimer++;
@@ -134,11 +167,28 @@ export class Game {
         });
 
         this.spawnEnemy();
+
         this.enemies.forEach((enemy, eIndex) => {
             enemy.update(this.canvas.height);
             
             if (enemy.x + enemy.width < 0) {
                 this.enemies.splice(eIndex, 1);
+                return;
+            }
+
+            // Colisão com a nave
+            if (
+                this.player.x < enemy.x + enemy.width &&
+                this.player.x + this.player.width > enemy.x &&
+                this.player.y < enemy.y + enemy.height &&
+                this.player.y + this.player.height > enemy.y
+            ) {
+                this.lives -= 1;
+                this.enemies.splice(eIndex, 1);
+
+                if (this.lives <= 0) {
+                    this.triggerGameOver();
+                }
                 return;
             }
 
@@ -188,6 +238,21 @@ export class Game {
         this.ui.update(this.coins, this.score, this.lives);
     }
 
+    triggerGameOver() {
+        this.isGameOver = true;
+        if (this.bgMusic) this.bgMusic.pause();
+        
+        const gameOverScreen = document.getElementById('gameOver');
+        const finalScoreText = document.getElementById('finalScore');
+        const canvas = document.getElementById('gameCanvas');
+        const joystick = document.getElementById('virtualJoystick');
+
+        if (gameOverScreen) gameOverScreen.style.display = 'flex';
+        if (finalScoreText) finalScoreText.innerText = `Pontos: ${this.score}`;
+        if (canvas) canvas.style.display = 'none';
+        if (joystick) joystick.style.display = 'none';
+    }
+
     draw() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
@@ -204,15 +269,65 @@ export class Game {
     }
 
     loop() {
-        this.update();
-        this.draw();
-        requestAnimationFrame(() => this.loop());
+        if (!this.isGameOver) {
+            this.update();
+            this.draw();
+            requestAnimationFrame(() => this.loop());
+        }
     }
 
     start() {
+        this.isGameOver = false;
+        this.lives = 3;
+        this.score = 0;
+        this.coins = 0;
+        this.enemies = [];
+        this.bullets = [];
+        this.powerUps = [];
+
+        if (this.canvas) this.canvas.style.display = 'block';
+        
+        const gameOverScreen = document.getElementById('gameOver');
+        if (gameOverScreen) gameOverScreen.style.display = 'none';
+
+        const joystick = document.getElementById('virtualJoystick');
+        if (joystick) joystick.style.display = 'block';
+
         if (this.bgMusic) {
+            this.bgMusic.currentTime = 0;
             this.bgMusic.play().catch(() => {});
         }
         this.loop();
     }
 }
+
+// 🚀 Inicialização Automática ao carregar o Script
+window.addEventListener('DOMContentLoaded', () => {
+    const canvas = document.getElementById('gameCanvas');
+    const startBtn = document.getElementById('startBtn');
+    const menu = document.getElementById('menu');
+    const volumeSlider = document.getElementById('volumeSlider');
+
+    if (canvas) {
+        const game = new Game(canvas);
+
+        if (volumeSlider) {
+            volumeSlider.addEventListener('input', (e) => {
+                game.setVolume(e.target.value);
+            });
+        }
+
+        if (startBtn) {
+            startBtn.addEventListener('click', () => {
+                const nameField = document.getElementById('playerName');
+                if (nameField && !nameField.value.trim()) {
+                    alert('Digite seu nome antes de começar!');
+                    return;
+                }
+
+                if (menu) menu.style.display = 'none';
+                game.start();
+            });
+        }
+    }
+});
