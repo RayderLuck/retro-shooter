@@ -24,8 +24,25 @@ export class Game {
     }
 
     setupListeners() {
-        window.addEventListener('keydown', (e) => this.keys[e.key] = true);
+        window.addEventListener('keydown', (e) => {
+            this.keys[e.key] = true;
+            // Disparo com a barra de espaço
+            if (e.key === ' ' || e.key === 'Spacebar') {
+                this.shoot();
+            }
+        });
         window.addEventListener('keyup', (e) => this.keys[e.key] = false);
+    }
+
+    shoot() {
+        // Cria tiros simples a partir da posição da nave
+        this.bullets.push({
+            x: this.player.x + this.player.width / 2 - 3,
+            y: this.player.y,
+            width: 6,
+            height: 12,
+            speed: 7
+        });
     }
 
     spawnEnemy() {
@@ -39,15 +56,44 @@ export class Game {
         // Atualiza jogador
         this.player.update(this.keys, this.canvas.width, this.canvas.height);
 
+        // Atualiza tiros do jogador
+        this.bullets.forEach((bullet, bIndex) => {
+            bullet.y -= bullet.speed;
+            if (bullet.y < 0) {
+                this.bullets.splice(bIndex, 1);
+            }
+        });
+
         // Gera e atualiza inimigos
         this.spawnEnemy();
-        this.enemies.forEach((enemy, index) => {
+        this.enemies.forEach((enemy, eIndex) => {
             enemy.update(this.canvas.width);
             
-            // Remove inimigos que saem da tela
+            // Remove inimigos que passam da tela
             if (enemy.y > this.canvas.height) {
-                this.enemies.splice(index, 1);
+                this.enemies.splice(eIndex, 1);
+                return;
             }
+
+            // Verifica colisão do tiro com o inimigo
+            this.bullets.forEach((bullet, bIndex) => {
+                if (enemy.checkCollision(bullet)) {
+                    enemy.health -= 1;
+                    this.bullets.splice(bIndex, 1);
+
+                    // Se o inimigo morreu
+                    if (enemy.health <= 0) {
+                        this.enemies.splice(eIndex, 1);
+                        this.score += 100;
+
+                        // Chance de dropar moeda ou power-up
+                        if (Math.random() < 0.4) {
+                            const dropType = Math.random() < 0.7 ? 'moeda' : 'explosivo';
+                            this.powerUps.push(new PowerUp(enemy.x, enemy.y, dropType));
+                        }
+                    }
+                }
+            });
         });
 
         // Atualiza power-ups / moedas
@@ -77,6 +123,13 @@ export class Game {
 
         // Desenha elementos
         this.player.draw(this.ctx, null);
+
+        // Desenha tiros
+        this.ctx.fillStyle = '#00ffff';
+        this.bullets.forEach(bullet => {
+            this.ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+        });
+
         this.enemies.forEach(enemy => enemy.draw(this.ctx));
         this.powerUps.forEach(item => item.draw(this.ctx));
         this.ui.draw(this.ctx, this.canvas.width);
