@@ -184,7 +184,7 @@ function update() {
 // 🖥️ HUD
 function drawHUD() {
   ctx.fillStyle = "white"; 
-  ctx.font = "16px sans-serif"; // Usando fonte padrão caso a customizada falhe ao carregar
+  ctx.font = "16px sans-serif";
   ctx.fillText(`Pontos: ${gameState.score}`, 20, 30);
   ctx.fillText(`Vidas: ${gameState.lives}`, 20, 60);
   ctx.fillText(`Arma: ${gameState.weaponLevel}`, 20, 90);
@@ -212,7 +212,6 @@ function updateRankingMenu(){
   }
 }
 
-// Temporizadores de Spawn globais para poder limpar depois
 let enemyInterval, powerUpInterval, autoShootInterval;
 
 // 🔚 Game Over
@@ -245,7 +244,6 @@ if (startBtn) {
       return; 
     }
     
-    // Reseta os status do jogo para uma nova partida limpa
     gameState.score = 0; 
     gameState.lives = 3; 
     gameState.weaponLevel = 1;
@@ -294,7 +292,7 @@ document.addEventListener("mousemove", e => {
   gameState.ship.y = (e.clientY - rect.top) * scaleY - gameState.ship.h/2;
 });
 
-// 📱 Controles por Touch (Arrastar a nave na tela)
+// 📱 Controles por Touch
 function handleTouch(e) {
   if (!gameState.running) return;
   e.preventDefault(); 
@@ -336,7 +334,7 @@ function loop(){
   }
 }
 
-// ✨ Fade-in/Fade-out corrigido
+// ✨ Fade-in/Fade-out
 function fade(el, show){
   if(!el) return;
   if(show) el.style.display = "block";
