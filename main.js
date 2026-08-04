@@ -4,6 +4,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const startBtn = document.getElementById('startBtn');
     const menu = document.getElementById('menu');
     const canvas = document.getElementById('gameCanvas');
+    const virtualJoystick = document.getElementById('virtualJoystick');
 
     if (startBtn) {
         startBtn.addEventListener('click', () => {
@@ -13,11 +14,16 @@ window.addEventListener('DOMContentLoaded', () => {
             // Mostra o canvas do jogo
             if (canvas) {
                 canvas.style.display = 'block';
-                
-                // Inicia o loop principal do jogo
-                const game = new Game(canvas);
-                game.start();
             }
+
+            // Exibe o joystick virtual no celular
+            if (virtualJoystick) {
+                virtualJoystick.style.display = 'flex';
+            }
+
+            // Inicia o loop principal do jogo
+            const game = new Game(canvas);
+            game.start();
         });
     }
 });
