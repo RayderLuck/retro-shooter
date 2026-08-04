@@ -33,6 +33,7 @@ export class Game {
         this.laserSound = document.getElementById('laserSound');
 
         this.setupListeners();
+        this.setupJoystick();
     }
 
     setVolume(vol) {
@@ -52,44 +53,74 @@ export class Game {
         window.addEventListener('keydown', (e) => { this.keys[e.key] = true; });
         window.addEventListener('keyup', (e) => { this.keys[e.key] = false; });
 
-        const updatePosition = (clientX, clientY) => {
-            const rect = this.canvas.getBoundingClientRect();
-            const scaleX = this.canvas.width / rect.width;
-            const scaleY = this.canvas.height / rect.height;
-            
-            this.mouseX = (clientX - rect.left) * scaleX;
-            this.mouseY = (clientY - rect.top) * scaleY;
-        };
-
         // Eventos de Mouse (PC)
         this.canvas.addEventListener('mousemove', (e) => {
-            updatePosition(e.clientX, e.clientY);
+            const rect = this.canvas.getBoundingClientRect();
+            this.mouseX = (e.clientX - rect.left) * (this.canvas.width / rect.width);
+            this.mouseY = (e.clientY - rect.top) * (this.canvas.height / rect.height);
         });
 
         this.canvas.addEventListener('mouseleave', () => {
             this.mouseX = undefined;
             this.mouseY = undefined;
         });
+    }
 
-        // 📱 Eventos de Toque (Celular) - Segue o dedo arrastando suavemente
-        this.canvas.addEventListener('touchstart', (e) => {
-            if (e.touches.length > 0) {
-                updatePosition(e.touches[0].clientX, e.touches[0].clientY);
+    // 🕹️ Lógica do Joystick Virtual na tela
+    setupJoystick() {
+        const joystickBase = document.getElementById('virtualJoystick');
+        const joystickStick = document.getElementById('joystickStick');
+        
+        if (!joystickBase || !joystickStick) return;
+
+        let active = false;
+        let baseRect = {};
+
+        const startTouch = (e) => {
+            active = true;
+            baseRect = joystickBase.getBoundingClientRect();
+            moveTouch(e);
+        };
+
+        const moveTouch = (e) => {
+            if (!active) return;
+            const touch = e.touches ? e.touches[0] : e;
+            
+            let centerX = baseRect.left + baseRect.width / 2;
+            let centerY = baseRect.top + baseRect.height / 2;
+            
+            let dx = touch.clientX - centerX;
+            let dy = touch.clientY - centerY;
+            
+            let distance = Math.sqrt(dx * dx + dy * dy);
+            let maxDist = baseRect.width / 2 - 15;
+            
+            if (distance > maxDist) {
+                dx = (dx / distance) * maxDist;
+                dy = (dy / distance) * maxDist;
             }
-            e.preventDefault();
-        }, { passive: false });
+            
+            joystickStick.style.transform = `translate(${dx}px, ${dy}px)`;
+            
+            // Simula as setas do teclado com base na direção do joystick
+            this.keys['ArrowLeft'] = dx < -10;
+            this.keys['ArrowRight'] = dx > 10;
+            this.keys['ArrowUp'] = dy < -10;
+            this.keys['ArrowDown'] = dy > 10;
+        };
 
-        this.canvas.addEventListener('touchmove', (e) => {
-            if (e.touches.length > 0) {
-                updatePosition(e.touches[0].clientX, e.touches[0].clientY);
-            }
-            e.preventDefault();
-        }, { passive: false });
+        const endTouch = () => {
+            active = false;
+            joystickStick.style.transform = `translate(0px, 0px)`;
+            this.keys['ArrowLeft'] = false;
+            this.keys['ArrowRight'] = false;
+            this.keys['ArrowUp'] = false;
+            this.keys['ArrowDown'] = false;
+        };
 
-        this.canvas.addEventListener('touchend', () => {
-            this.mouseX = undefined;
-            this.mouseY = undefined;
-        });
+        joystickBase.addEventListener('touchstart', startTouch);
+        window.addEventListener('touchmove', moveTouch);
+        window.addEventListener('touchend', endTouch);
     }
 
     shoot() {
@@ -120,7 +151,6 @@ export class Game {
     update() {
         if (this.isGameOver) return;
 
-        // Move a nave seguindo diretamente o toque/mouse
         this.player.update(this.keys, this.mouseX, this.mouseY, this.canvas.width, this.canvas.height);
 
         this.shootTimer++;
@@ -141,13 +171,11 @@ export class Game {
         this.enemies.forEach((enemy, eIndex) => {
             enemy.update(this.canvas.height);
             
-            // Remove inimigo se passar da tela
             if (enemy.x + enemy.width < 0) {
                 this.enemies.splice(eIndex, 1);
                 return;
             }
 
-            // 💥 Colisão do Inimigo com a Nave do Jogador (Perde Vida)
             if (
                 this.player.x < enemy.x + enemy.width &&
                 this.player.x + this.player.width > enemy.x &&
@@ -155,7 +183,7 @@ export class Game {
                 this.player.y + this.player.height > enemy.y
             ) {
                 this.lives -= 1;
-                this.enemies.splice(eIndex, 1); // Destrói o inimigo ao bater na nave
+                this.enemies.splice(eIndex, 1);
 
                 if (this.lives <= 0) {
                     this.triggerGameOver();
@@ -163,13 +191,11 @@ export class Game {
                 return;
             }
 
-            // Colisão dos Tiros com os Inimigos
             this.bullets.forEach((bullet, bIndex) => {
                 if (enemy.checkCollision(bullet)) {
                     enemy.health -= 1;
                     this.bullets.splice(bIndex, 1);
 
-                    // Se a vida do inimigo acabou (Explosão / Destruição)
                     if (enemy.health <= 0) {
                         this.enemies.splice(eIndex, 1);
                         this.score += 100;
@@ -222,7 +248,7 @@ export class Game {
         if (gameOverScreen) gameOverScreen.style.display = 'flex';
         if (finalScoreText) finalScoreText.innerText = `Pontos: ${this.score}`;
         if (canvas) canvas.style.display = 'none';
-        if (joystick) joystick.style.display = 'none'; // Esconde o joystick no Game Over
+        if (joystick) joystick.style.display = 'none';
     }
 
     draw() {
@@ -263,7 +289,7 @@ export class Game {
         if (gameOverScreen) gameOverScreen.style.display = 'none';
 
         const joystick = document.getElementById('virtualJoystick');
-        if (joystick) joystick.style.display = 'block'; // Mostra o joystick ao iniciar o jogo
+        if (joystick) joystick.style.display = 'block';
 
         if (this.bgMusic) {
             this.bgMusic.currentTime = 0;
