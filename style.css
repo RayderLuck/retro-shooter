@@ -223,7 +223,7 @@ body::after {
 /* 🎮 Canvas do Jogo */
 #gameCanvas {
   max-width: 98vw;
-  max-height: 90vh;
+  max-height: 80vh;
   object-fit: contain;
   border: 4px solid #00ffff;
   box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
@@ -231,13 +231,12 @@ body::after {
   touch-action: none;
 }
 
-/* 🕹️ Joystick Virtual Estilo Arcade para Celular */
+/* 🕹️ Joystick Virtual Centralizado Abaixo da Tela do Jogo */
 .joystick-base {
-  position: absolute;
-  bottom: 25px;
-  left: 25px;
-  width: 110px;
-  height: 110px;
+  position: relative;
+  margin-top: 15px;
+  width: 100px;
+  height: 100px;
   background: rgba(255, 255, 255, 0.08);
   border: 3px solid rgba(0, 255, 255, 0.4);
   border-radius: 50%;
@@ -250,8 +249,8 @@ body::after {
 }
 
 .joystick-handle {
-  width: 50px;
-  height: 50px;
+  width: 45px;
+  height: 45px;
   background: rgba(0, 255, 255, 0.7);
   border: 2px solid #fff;
   border-radius: 50%;
