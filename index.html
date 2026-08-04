@@ -49,14 +49,14 @@
     <div id="gameOver" class="menu-container" style="display: none;">
         <h1 class="game-title glitch">FIM DE JOGO</h1>
         <p id="finalScore" class="score-text">Pontos: 0</p>
-        <button class="arcade-btn" onclick="restartGame()">JOGAR NOVAMENTE</button>
+        <button class="arcade-btn" onclick="location.reload()">JOGAR NOVAMENTE</button>
     </div>
 
     <!-- 🔊 Elementos de Áudio -->
     <audio id="bgMusic" src="fase1.wav" loop></audio>
     <audio id="laserSound" src="laser1.wav"></audio>
 
-    <!-- Script principal do jogo -->
-    <script src="script.js"></script>
+    <!-- 🚀 Script Principal Modularizado -->
+    <script type="module" src="main.js"></script>
 </body>
 </html>
